@@ -10,7 +10,7 @@ module VoronoiDelaunay
 # Bug reportss welcome!
 
 export
-	DelaunayTessellation, sizehint,
+	DelaunayTessellation2D, sizehint,
 	min_coord, max_coord,
 	delaunayedges, voronoiedges,
 	start, next, done,

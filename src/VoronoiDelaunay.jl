@@ -15,7 +15,7 @@ export
 	delaunayedges, voronoiedges,
 	start, next, done,
 	findindex, push!,
-	Point, Point2D, AbstractPoint2D, getx, gety
+	Point, Point2D, AbstractPoint2D, getx, gety, geta, getb, getc
 
 
 using GeometricalPredicates
@@ -110,12 +110,23 @@ function sizefit_at_leat{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, n::In
 	t
 end
 
-immutable Edge{T<:AbstractPoint2D}
+immutable DelaunayEdge{T<:AbstractPoint2D}
 	_a::T
 	_b::T
 end
-geta{T<:AbstractPoint2D}(e::Edge{T}) = e._a
-getb{T<:AbstractPoint2D}(e::Edge{T}) = e._b
+geta{T<:AbstractPoint2D}(e::DelaunayEdge{T}) = e._a
+getb{T<:AbstractPoint2D}(e::DelaunayEdge{T}) = e._b
+
+immutable VoronoiEdge{T<:AbstractPoint2D}
+	_a::Point2D
+	_b::Point2D
+	_generator_a::T
+	_generator_b::T
+end
+geta{T<:AbstractPoint2D}(e::VoronoiEdge{T}) = e._a
+getb{T<:AbstractPoint2D}(e::VoronoiEdge{T}) = e._b
+getgena{T<:AbstractPoint2D}(e::VoronoiEdge{T}) = e._generator_a
+getgenb{T<:AbstractPoint2D}(e::VoronoiEdge{T}) = e._generator_b
 
 function delaunayedges(t::DelaunayTessellation2D)
 	visited = zeros(Bool, t._last_trig_index)
@@ -127,15 +138,15 @@ function delaunayedges(t::DelaunayTessellation2D)
 			visited[ix] = true
 			const ix_na = tr._neighbour_a
 			if !visited[ix_na]
-				produce(Edge(getb(tr), getc(tr)))
+				produce(DelaunayEdge(getb(tr), getc(tr)))
 			end
 			const ix_nb = tr._neighbour_b
 			if !visited[ix_nb] 
-				produce(Edge(geta(tr), getc(tr)))
+				produce(DelaunayEdge(geta(tr), getc(tr)))
 			end
 			const ix_nc = tr._neighbour_c
 			if !visited[ix_nc] 
-				produce(Edge(geta(tr), getb(tr)))
+				produce(DelaunayEdge(geta(tr), getb(tr)))
 			end
 		end
 	end
@@ -155,15 +166,18 @@ function voronoiedges(t::DelaunayTessellation2D)
 
 			const ix_na = tr._neighbour_a
 			if !visited[ix_na] 
-				produce(Edge(cc, circumcenter(t._trigs[ix_na])))
+				const nb = t._trigs[ix_na]
+				produce(VoronoiEdge(cc, circumcenter(nb), geta(tr), nb._neighbour_a==ix? geta(nb) : nb._neighbour_b==ix? getb(nb): getc(nb)))
 			end
 			const ix_nb = tr._neighbour_b
 			if !visited[ix_nb] 
-				produce(Edge(cc, circumcenter(t._trigs[ix_nb])))
+				const nb = t._trigs[ix_nb]
+				produce(VoronoiEdge(cc, circumcenter(nb), getb(tr), nb._neighbour_a==ix? geta(nb) : nb._neighbour_b==ix? getb(nb): getc(nb)))
 			end
 			const ix_nc = tr._neighbour_c
 			if !visited[ix_nc] 
-				produce(Edge(cc, circumcenter(t._trigs[ix_nc])))
+				const nb = t._trigs[ix_nc]
+				produce(VoronoiEdge(cc, circumcenter(nb), getc(tr), nb._neighbour_a==ix? geta(nb) : nb._neighbour_b==ix? getb(nb): getc(nb)))
 			end
 		end
 	end

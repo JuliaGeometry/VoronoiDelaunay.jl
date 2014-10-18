@@ -10,12 +10,13 @@ module VoronoiDelaunay
 # Bug reportss welcome!
 
 export
-	DelaunayTessellation2D, sizehint,
-	min_coord, max_coord,
-	delaunayedges, voronoiedges,
+	DelaunayTessellation, DelaunayTessellation2D, sizehint, isexternal,
+	min_coord, max_coord, locate, movea, moveb, movec,
+	delaunayedges, voronoiedges, voronoiedgeswithoutgenerators,
 	start, next, done,
 	findindex, push!,
-	Point, Point2D, AbstractPoint2D, getx, gety, geta, getb, getc
+	Point, Point2D, AbstractPoint2D, getx, gety, geta, getb, getc,
+	getplotxy
 
 
 using GeometricalPredicates
@@ -128,6 +129,13 @@ getb{T<:AbstractPoint2D}(e::VoronoiEdge{T}) = e._b
 getgena{T<:AbstractPoint2D}(e::VoronoiEdge{T}) = e._generator_a
 getgenb{T<:AbstractPoint2D}(e::VoronoiEdge{T}) = e._generator_b
 
+immutable VoronoiEdgeWithoutGenerators
+	_a::Point2D
+	_b::Point2D
+end
+geta(e::VoronoiEdgeWithoutGenerators) = e._a
+getb(e::VoronoiEdgeWithoutGenerators) = e._b
+
 function delaunayedges(t::DelaunayTessellation2D)
 	visited = zeros(Bool, t._last_trig_index)
 	function delaunayiterator()
@@ -165,19 +173,50 @@ function voronoiedges(t::DelaunayTessellation2D)
 			const cc = circumcenter(tr)
 
 			const ix_na = tr._neighbour_a
-			if !visited[ix_na] 
+			if !visited[ix_na] && !isexternal(t._trigs[ix_na])
 				const nb = t._trigs[ix_na]
 				produce(VoronoiEdge(cc, circumcenter(nb), geta(tr), nb._neighbour_a==ix? geta(nb) : nb._neighbour_b==ix? getb(nb): getc(nb)))
 			end
 			const ix_nb = tr._neighbour_b
-			if !visited[ix_nb] 
+			if !visited[ix_nb] && !isexternal(t._trigs[ix_nb])
 				const nb = t._trigs[ix_nb]
 				produce(VoronoiEdge(cc, circumcenter(nb), getb(tr), nb._neighbour_a==ix? geta(nb) : nb._neighbour_b==ix? getb(nb): getc(nb)))
 			end
 			const ix_nc = tr._neighbour_c
-			if !visited[ix_nc] 
+			if !visited[ix_nc] && !isexternal(t._trigs[ix_nb])
 				const nb = t._trigs[ix_nc]
 				produce(VoronoiEdge(cc, circumcenter(nb), getc(tr), nb._neighbour_a==ix? geta(nb) : nb._neighbour_b==ix? getb(nb): getc(nb)))
+			end
+		end
+	end
+	Task(voronoiiterator)
+end
+
+function voronoiedgeswithoutgenerators(t::DelaunayTessellation2D)
+	visited = zeros(Bool, t._last_trig_index)
+	visited[1] = true
+	function voronoiiterator()
+		for ix in 2:t._last_trig_index
+			visited[ix] && continue
+			const tr = t._trigs[ix]
+			visited[ix] = true
+			isexternal(tr) && continue
+			const cc = circumcenter(tr)
+
+			const ix_na = tr._neighbour_a
+			if !visited[ix_na] && !isexternal(t._trigs[ix_na])
+				const nb = t._trigs[ix_na]
+				produce(VoronoiEdgeWithoutGenerators(cc, circumcenter(nb)))
+			end
+			const ix_nb = tr._neighbour_b
+			if !visited[ix_nb] && !isexternal(t._trigs[ix_nb])
+				const nb = t._trigs[ix_nb]
+				produce(VoronoiEdgeWithoutGenerators(cc, circumcenter(nb)))
+			end
+			const ix_nc = tr._neighbour_c
+			if !visited[ix_nc] && !isexternal(t._trigs[ix_nc])
+				const nb = t._trigs[ix_nc]
+				produce(VoronoiEdgeWithoutGenerators(cc, circumcenter(nb)))
 			end
 		end
 	end
@@ -200,9 +239,14 @@ function findindex{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, p::T)
 		w > 0 && return i
 		@inbounds const tr = tess._trigs[i]
 		i = w==-1? tr._neighbour_a : w==-2? tr._neighbour_b : tr._neighbour_c
-		@assert i!=1 prinln("p=",p)
 	end
 end
+
+locate{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, p::T) = t._trigs[findindex(t, p)]
+
+movea{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, trig::DelaunayTriangle{T}) = tess._trigs[trig._neighbour_a]
+moveb{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, trig::DelaunayTriangle{T}) = tess._trigs[trig._neighbour_b]
+movec{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, trig::DelaunayTriangle{T}) = tess._trigs[trig._neighbour_c]
 
 function _pushunfixed!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, p::T)
 	i = findindex(tess, p)
@@ -563,3 +607,17 @@ end
 
 end # module VoronoiDelaunay
 
+function getplotxy(edges)
+    edges = collect(edges)
+    x = Float64[]
+    y = Float64[]
+    for e in edges
+        push!(x, getx(geta(e)))
+        push!(x, getx(getb(e)))
+        push!(x, NaN)
+        push!(y, gety(geta(e)))
+        push!(y, gety(getb(e)))
+        push!(y, NaN)
+    end
+    (x, y)
+end

@@ -98,6 +98,8 @@ Locating a point, i.e. finding the triangle it is inside:
 t = locate(tess, Point(1.2, 1.3))
 ```
 if the point is outside of the tessellation then `isexternal(t) == true` holds. This is good for type stability, at least better than returning a `Nothing`. It is assumed that the point we want to locate is actually in the allowed points region. Performance is best when locating points close to each other (this is also why spatial sorting is used). Future versions may implement a hierarchal approach for fast random locations.
+
+Navigating from a triangle to its neighbours is done like this:
 ```Julia
 t = movea(tess, t)  # move to the direction infront of generator a
 t = moveb(tess, t)  # move to the direction infront of generator b

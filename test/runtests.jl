@@ -1,5 +1,5 @@
 using VoronoiDelaunay
-import VoronoiDelaunay: _pushunfixed!
+import VoronoiDelaunay: _pushunfixed!, _flipa!, _flipb!, _flipc!
 using Base.Test
 
 	tess = DelaunayTessellation2D(100)

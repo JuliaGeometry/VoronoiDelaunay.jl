@@ -104,4 +104,21 @@ t = movec(tess, t)  # move to the direction infront of generator c
 ```
 
 ###Plotting
-
+The following retrieves a couple of vectors ready to plot Voronoi edges:
+```Julia
+x, y = getplotxy(voronoiedges(tess))
+```
+and for Delaunay edges:
+```Julia
+x, y = getplotxy(delaunayedges(tess))
+```
+Now plotting can be done with your favorite plotting package, for e.g.:
+```Julia
+using Gadfly
+plot(x=x, y=y, Geom.path)
+```
+To make a nice looking plot remember to limit the axes and aspect ratio. For e.g.:
+```Julia
+set_default_plot_size(15cm, 15cm)
+plot(x=x, y=y, Geom.path, Scale.x_continuous(minvalue=1.0, maxvalue=2.0), Scale.y_continuous(minvalue=1.0, maxvalue=2.0))
+```

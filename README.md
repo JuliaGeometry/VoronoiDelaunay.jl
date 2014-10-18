@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/skariel/VoronoiDelaunay.jl.svg?branch=master)](https://travis-ci.org/skariel/VoronoiDelaunay.jl)
 [![Coverage Status](https://img.shields.io/coveralls/skariel/VoronoiDelaunay.jl.svg)](https://coveralls.io/r/skariel/VoronoiDelaunay.jl)
 ![Alt VoronoiDelaunay.jl](http://i.imgur.com/lh8VLZ5.png5 "VoronoiDelaunay.jl")
-#WIP WIP WIP
+
 Fast, robust construction of 2D Delaunay and Voronoi tessellations on generic point types.
 Implementation follows algorithms described in the [Arepo paper](http://arxiv.org/abs/0901.4107)
 and used (for e.g.) in the [Illustris Simulation](http://www.illustris-project.org/). License: MIT. Bug reports welcome!

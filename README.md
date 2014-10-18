@@ -28,6 +28,23 @@ Pkg.clone("https://github.com/skariel/VoronoiDelaunay.jl")
 ```
 
 ###Building a tessellation
+Define and push individual points like this:
+```Julia
+using  VoronoiDelaunay
+tess = DelaunayTessellation()
+push!(tess, Point(1.5, 1.5))
+```
+creation of points is explained in the [GeometricalPredicates](https://github.com/skariel/GeometricalPredicates.jl) package documentation.
+
+Pushing arrays of points is more efficient:
+```Julia
+width = max_coord - min_coord
+a= Point2D[Point(min_coord+rand()*width, min_coord+rand()*width) for i in 1:100]
+push!(tess, a)
+```
+notice care taken for correct range of coordinates.
+
+
 ###Iterating
 ###Plotting
 

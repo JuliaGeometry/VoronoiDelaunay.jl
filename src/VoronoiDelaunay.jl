@@ -15,7 +15,7 @@ export
 	delaunayedges, voronoiedges,
 	start, next, done,
 	findindex, push!,
-	Point, Point2D, AbstractPoint2D, getx, gety
+	Point, Point2D, AbstractPoint2D, getx, gety, geta, getb, getc
 
 
 using GeometricalPredicates

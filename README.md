@@ -72,5 +72,10 @@ a `VoronoiEdge` is a bit different than a `DelaunayEdge`: here `a` and `b` are `
 
 Iterating over Delaunay triangles: WIP...
 
+###Navigating
+*Locating a point WIP
+*Moving WIP
+*Indexing WIP
+
 ###Plotting
 

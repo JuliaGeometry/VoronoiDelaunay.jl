@@ -18,7 +18,7 @@ provided by the [GeometricalPredicates](https://github.com/skariel/GeometricalPr
 Current limitations
 --------------------
 * Due to numerical restrictions the point coordinates must be within `min_coord <= x <= max_coord` where `min_coord=1.0+eps(Float64)` and `max_coord=2.0-2eps(Float64)`. Note this is a bit different than what is required by the  `GeometricalPredicates` package.
-* The followinf features are not implemented, but are in the TODO list; In order of priority: centroid tessellations (Lloy's method), Weighted generators (both power and sum), bounding, maybe restricting. Hierarchal tessellations for fast random locatings; 3D. Order of priority may change of course :)
+* The followinf features are not implemented, but are in the TODO list; In order of priority: centroid tessellations (Lloy's method), Weighted generators (both power and sum), bounding, maybe restricting. Hierarchal tessellations for fast random locatings; Distributed tessellation construction. 3D. Order of priority may change of course :)
 
 How to use?
 --------------

@@ -18,7 +18,7 @@ provided by the [GeometricalPredicates](https://github.com/skariel/GeometricalPr
 Current limitations
 --------------------
 * Due to numerical restrictions the point coordinates must be within `min_coord <= x <= max_coord` where `min_coord=1.0+eps(Float64)` and `max_coord=2.0-2eps(Float64)`. Note this is a bit different than what is required by the  `GeometricalPredicates` package.
-* The followinf features are not implemented, but are in the TODO list; In order of priority: centroid tessellations (Lloy's method), Weighted generators (both power and sum), bounding, maybe restricting; 3D. Order of priority may change of course :)
+* The followinf features are not implemented, but are in the TODO list; In order of priority: centroid tessellations (Lloy's method), Weighted generators (both power and sum), bounding, maybe restricting. Hierarchal tessellations for fast random locatings; 3D. Order of priority may change of course :)
 
 How to use?
 --------------
@@ -51,6 +51,7 @@ or at any later point:
 sizehint(tess, 100)
 ```
 ###Iterating
+Delaunay tesselations need at least 3 points to be well defined. Voronoi need 4. Remember this when iterating or plotting.
 Iterating over Delaunay edges is done like this:
 ```Julia
 i = 0
@@ -70,7 +71,55 @@ end
 ```
 a `VoronoiEdge` is a bit different than a `DelaunayEdge`: here `a` and `b` are `Point2D` and not the generators, as they have different coordinates. To get the generators use `getgena(edge)` and `getgenb(edge)` these give the relevant `AbstractPoint2D` which were used to create the edge.
 
-Iterating over Delaunay triangles: WIP...
+If the generators are not needed when iterating over the Voronoi edges (e.g. when plotting) then a more efficient way to iterate is:
+```Julia
+i = 0
+e=Nothing
+for edge in voronoiedgeswithoutgenerators(tess)
+    i += 1
+    # do somthing more useful here :)
+end
+```
+here `edge` is a `VoronoiEdgeWithoutGenerators`, the points `a` and `b` can be accessed as usual.
+
+Iterating over Delaunay triangles:
+```Julia
+i = 0
+for delaunaytriangle in tess
+    i += 1
+    # or, do something more useful :)
+end
+```
+`delaunaytriangle` here is of type `DelaunayTriagle` which is s subtype of `AbstractNegativelyOrientedTriangle`. To get the generators of this triangle use the `geta`, `getb`, and `getc` methods. You can do all other operations and predicate tests on this triangle as explained in [GeometricalPredicates](https://github.com/skariel/GeometricalPredicates.jl)
+
+###Navigating
+Locating a point, i.e. finding the triangle it is inside:
+```Julia
+t = locate(tess, Point(1.2, 1.3))
+```
+if the point is outside of the tessellation then `isexternal(t) == true` holds. This is good for type stability, at least better than returning a `Nothing`. It is assumed that the point we want to locate is actually in the allowed points region. Performance is best when locating points close to each other (this is also why spatial sorting is used). Future versions may implement a hierarchal approach for fast random locations.
+```Julia
+t = movea(tess, t)  # move to the direction infront of generator a
+t = moveb(tess, t)  # move to the direction infront of generator b
+t = movec(tess, t)  # move to the direction infront of generator c
+```
 
 ###Plotting
-
+The following retrieves a couple of vectors ready to plot Voronoi edges:
+```Julia
+x, y = getplotxy(voronoiedges(tess))
+```
+and for Delaunay edges:
+```Julia
+x, y = getplotxy(delaunayedges(tess))
+```
+Now plotting can be done with your favorite plotting package, for e.g.:
+```Julia
+using Gadfly
+plot(x=x, y=y, Geom.path)
+```
+To make a nice looking plot remember to limit the axes and aspect ratio. For e.g.:
+```Julia
+set_default_plot_size(15cm, 15cm)
+plot(x=x, y=y, Geom.path, Scale.x_continuous(minvalue=1.0, maxvalue=2.0), Scale.y_continuous(minvalue=1.0, maxvalue=2.0))
+```

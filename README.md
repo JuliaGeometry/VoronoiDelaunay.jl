@@ -51,6 +51,7 @@ or at any later point:
 sizehint(tess, 100)
 ```
 ###Iterating
+Delaunay tesselations need at least 3 points to be well defined. Voronoi need 4. Remember this when iterating or plotting.
 Iterating over Delaunay edges is done like this:
 ```Julia
 i = 0
@@ -96,7 +97,7 @@ Locating a point, i.e. finding the triangle it is inside:
 ```Julia
 t = locate(tess, Point(1.2, 1.3))
 ```
-if the point is outside of the tessellation then `isexternal(t) == true` holds. This is good for type stability, at least better than returning a `Nothing`. Performance is best when locating points close to each other (this is also why spatial sorting is used). Future versions may implement a hierarchal approach for fast random locations.
+if the point is outside of the tessellation then `isexternal(t) == true` holds. This is good for type stability, at least better than returning a `Nothing`. It is assumed that the point we want to locate is actually in the allowed points region. Performance is best when locating points close to each other (this is also why spatial sorting is used). Future versions may implement a hierarchal approach for fast random locations.
 ```Julia
 t = movea(tess, t)  # move to the direction infront of generator a
 t = moveb(tess, t)  # move to the direction infront of generator b

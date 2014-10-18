@@ -51,6 +51,26 @@ or at any later point:
 sizehint(tess, 100)
 ```
 ###Iterating
+Iterating over Delaunay edges is done like this:
+```Julia
+i = 0
+for edge in delaunayedges(tess)
+    i += 1
+    # or, do something more useful :)
+end
+```
+a `DelaunayEdge` contains two points a and b, they can be accesse with `geta(edge)` and `getb(edge)`.
+Iterating over Voronoi edges is similar:
+```Julia
+i = 0
+for edge in voronoiedges(tess)
+    i += 1
+    # or, do something more useful :)
+end
+```
+a `VoronoiEdge` is a bit different than a `DelaunayEdge`: here `a` and `b` are `Point2D` and not the generators, as they have different coordinates. To get the generators use `getgena(edge)` and `getgenb(edge)` these give the relevant `AbstractPoint2D` which were used to create the edge.
+
+Iterating over Delaunay triangles: WIP...
 
 ###Plotting
 

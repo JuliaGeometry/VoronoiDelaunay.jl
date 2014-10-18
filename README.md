@@ -70,12 +70,38 @@ end
 ```
 a `VoronoiEdge` is a bit different than a `DelaunayEdge`: here `a` and `b` are `Point2D` and not the generators, as they have different coordinates. To get the generators use `getgena(edge)` and `getgenb(edge)` these give the relevant `AbstractPoint2D` which were used to create the edge.
 
-Iterating over Delaunay triangles: WIP...
+If the generators are not needed when iterating over the Voronoi edges (e.g. when plotting) then a more efficient way to iterate is:
+```Julia
+i = 0
+e=Nothing
+for edge in voronoiedgeswithoutgenerators(tess)
+    i += 1
+    # do somthing more useful here :)
+end
+```
+here `edge` is a `VoronoiEdgeWithoutGenerators`, the points `a` and `b` can be accessed as usual.
+
+Iterating over Delaunay triangles:
+```Julia
+i = 0
+for delaunaytriangle in tess
+    i += 1
+    # or, do something more useful :)
+end
+```
+`delaunaytriangle` here is of type `DelaunayTriagle` which is s subtype of `AbstractNegativelyOrientedTriangle`. To get the generators of this triangle use the `geta`, `getb`, and `getc` methods. You can do all other operations and predicate tests on this triangle as explained in [GeometricalPredicates](https://github.com/skariel/GeometricalPredicates.jl)
 
 ###Navigating
-*Locating a point WIP
-*Moving WIP
-*Indexing WIP
+Locating a point, i.e. finding the triangle it is inside:
+```Julia
+t = locate(tess, Point(1.2, 1.3))
+```
+if the point is outside of the tessellation then `isexternal(t) == true` holds. This is good for type stability, at least better than returning a `Nothing`.
+```Julia
+t = movea(tess, t)  # move to the direction infront of generator a
+t = moveb(tess, t)  # move to the direction infront of generator b
+t = movec(tess, t)  # move to the direction infront of generator c
+```
 
 ###Plotting
 

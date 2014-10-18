@@ -42,9 +42,15 @@ width = max_coord - min_coord
 a= Point2D[Point(min_coord+rand()*width, min_coord+rand()*width) for i in 1:100]
 push!(tess, a)
 ```
-notice care taken for correct range of coordinates.
-
-
+notice care taken for correct range of coordinates. `min_coord` and `max_coord` are defined in the package. We can further optimize by giving a `sizehint` at time of construction:
+```Julia
+tess = DelaunayTessellation(100)
+```
+or at any later point:
+```Julia
+sizehint(tess, 100)
+```
 ###Iterating
+
 ###Plotting
 

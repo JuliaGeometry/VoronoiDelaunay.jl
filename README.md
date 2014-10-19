@@ -9,7 +9,7 @@ and used (for e.g.) in the [Illustris Simulation](http://www.illustris-project.o
 How does it work?
 --------------------
 Incrementally insert points to a valid Delaunay tessallation, while restoring Delaunayhood by flipping triangles.
-Point location (i.e. which triangle should it devide into three) is accelerated by spatial sorting.
+Point location (i.e. which triangle should it divide into three) is accelerated by spatial sorting.
 Spatial sorting allows to add points which are close in space thus walking the tesselation is fast.
 Initial tessalletion includes two triangles built by 4 points which are outside of the allowed region for users.
 These "external" triangles are skipped when iterating over Delaunay/Voronoy edges. Fast and robust predicates are
@@ -18,7 +18,7 @@ provided by the [GeometricalPredicates](https://github.com/skariel/GeometricalPr
 Current limitations
 --------------------
 * Due to numerical restrictions the point coordinates must be within `min_coord <= x <= max_coord` where `min_coord=1.0+eps(Float64)` and `max_coord=2.0-2eps(Float64)`. Note this is a bit different than what is required by the  `GeometricalPredicates` package.
-* The followinf features are not implemented, but are in the TODO list; In order of priority: centroid tessellations (Lloy's method), Weighted generators (both power and sum), bounding, maybe restricting. Hierarchal tessellations for fast random locatings; Distributed tessellation construction. 3D. Order of priority may change of course :)
+* The following features are not implemented, but are in the TODO list; In order of priority: centroid tessellations (Lloy's method), Weighted generators (both power and sum), bounding, maybe restricting. Hierarchal tessellations for fast random locatings; Distributed tessellation construction. 3D. Order of priority may change of course :)
 
 How to use?
 --------------
@@ -77,7 +77,7 @@ i = 0
 e=Nothing
 for edge in voronoiedgeswithoutgenerators(tess)
     i += 1
-    # do somthing more useful here :)
+    # do something more useful here :)
 end
 ```
 here `edge` is a `VoronoiEdgeWithoutGenerators`, the points `a` and `b` can be accessed as usual.

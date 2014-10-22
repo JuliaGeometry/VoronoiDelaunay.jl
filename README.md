@@ -24,7 +24,7 @@ How to use?
 --------------
 ###Installation
 ```Julia
-Pkg.clone("https://github.com/skariel/VoronoiDelaunay.jl")
+Pkg.add("VoronoiDelaunay")
 ```
 
 ###Building a tessellation

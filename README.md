@@ -125,3 +125,13 @@ To make a nice looking plot remember to limit the axes and aspect ratio. For e.g
 set_default_plot_size(15cm, 15cm)
 plot(x=x, y=y, Geom.path, Scale.x_continuous(minvalue=1.0, maxvalue=2.0), Scale.y_continuous(minvalue=1.0, maxvalue=2.0))
 ```
+
+###From an image
+You can create a tesselation from an image, just like the tesselation of the
+julia logo at the top of this README. This was created from a png with `from_file`
+(see `examples/img_to_vorono.jl`):
+```Julia
+import Images: imread
+img = imread("julia.png")
+tess = from_image(img, 25000)
+```

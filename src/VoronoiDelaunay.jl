@@ -136,10 +136,11 @@ end
 geta(e::VoronoiEdgeWithoutGenerators) = e._a
 getb(e::VoronoiEdgeWithoutGenerators) = e._b
 
+# TODO: is an iterator faster?
 function delaunayedges(t::DelaunayTessellation2D)
 	visited = zeros(Bool, t._last_trig_index)
 	function delaunayiterator()
-		for ix in 2:t._last_trig_index
+		@inbounds for ix in 2:t._last_trig_index
 			const tr = t._trigs[ix]
 			isexternal(tr) && continue
 			visited[ix] && continue
@@ -161,11 +162,12 @@ function delaunayedges(t::DelaunayTessellation2D)
 	Task(delaunayiterator)
 end
 
+# TODO: is an iterator faster?
 function voronoiedges(t::DelaunayTessellation2D)
 	visited = zeros(Bool, t._last_trig_index)
 	visited[1] = true
 	function voronoiiterator()
-		for ix in 2:t._last_trig_index
+		@inbounds for ix in 2:t._last_trig_index
 			visited[ix] && continue
 			const tr = t._trigs[ix]
 			visited[ix] = true
@@ -192,11 +194,12 @@ function voronoiedges(t::DelaunayTessellation2D)
 	Task(voronoiiterator)
 end
 
+# TODO: is an iterator faster?
 function voronoiedgeswithoutgenerators(t::DelaunayTessellation2D)
 	visited = zeros(Bool, t._last_trig_index)
 	visited[1] = true
 	function voronoiiterator()
-		for ix in 2:t._last_trig_index
+		@inbounds for ix in 2:t._last_trig_index
 			visited[ix] && continue
 			const tr = t._trigs[ix]
 			visited[ix] = true
@@ -637,7 +640,6 @@ function from_image(img, npts)
 	tess
 end
 
-end # module VoronoiDelaunay
 
 function getplotxy(edges)
     edges = collect(edges)
@@ -653,3 +655,5 @@ function getplotxy(edges)
     end
     (x, y)
 end
+
+end # module VoronoiDelaunay

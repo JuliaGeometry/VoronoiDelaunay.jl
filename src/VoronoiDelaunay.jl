@@ -97,7 +97,7 @@ function sizehint{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, n::Int64)
 end
 
 # growing strategy
-function sizefit_at_leat{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, n::Int64)
+function sizefit_at_least{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, n::Int64)
 	const minimal_acceptable_actual_size = 2*n+10
 	minimal_acceptable_actual_size <= length(t._trigs) && return
 	required_total_size = length(t._trigs)
@@ -223,14 +223,21 @@ function voronoiedgeswithoutgenerators(t::DelaunayTessellation2D)
 	Task(voronoiiterator)
 end
 
-start(t::DelaunayTessellation2D) = 2
-function next(t::DelaunayTessellation2D, it::Int64)
-	while isexternal(t._trigs[it]) && it < t._last_trig_index
-		it += 1
-	end
-	(t._trigs[it], it+1)
+type TrigIter
+	ix::Int64
 end
-done(t::DelaunayTessellation2D, it::Int64) = it > t._last_trig_index
+start(t::DelaunayTessellation2D) = TrigIter(2)
+function done(t::DelaunayTessellation2D, it::TrigIter)
+	while isexternal(t._trigs[it.ix]) && it.ix <= t._last_trig_index
+		it.ix += 1
+	end	
+	it.ix > t._last_trig_index
+end
+function next(t::DelaunayTessellation2D, it::TrigIter)
+	@inbounds const trig = t._trigs[it.ix]
+	it.ix += 1
+	(trig, it)
+end
 
 function findindex{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, p::T)
 	i::Int64 = tess._last_trig_index
@@ -585,7 +592,7 @@ end
 # push a single point. Grows tessellation as needed
 function push!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, p::T)
 	tess._total_points_added += 1
-	sizefit_at_leat(tess, tess._total_points_added)
+	sizefit_at_least(tess, tess._total_points_added)
 	const i = _pushunfixed!(tess, p)
 	_restoredelaunayhood!(tess, i)
 end

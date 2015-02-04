@@ -10,7 +10,7 @@ module VoronoiDelaunay
 # Bug reportss welcome!
 
 export
-	DelaunayTessellation, DelaunayTessellation2D, sizehint, isexternal,
+	DelaunayTessellation, DelaunayTessellation2D, sizehint!, isexternal,
 	min_coord, max_coord, locate, movea, moveb, movec,
 	delaunayedges, voronoiedges, voronoiedgeswithoutgenerators,
 	start, next, done,
@@ -23,7 +23,7 @@ using GeometricalPredicates
 import GeometricalPredicates
 import GeometricalPredicates: geta, getb, getc
 
-import Base:push!, start, done, next, sizehint, copy
+import Base:push!, start, done, next, sizehint!, copy
 
 const min_coord = GeometricalPredicates.min_coord + eps(Float64)
 const max_coord = GeometricalPredicates.max_coord - eps(Float64)
@@ -78,18 +78,18 @@ type DelaunayTessellation2D{T<:AbstractPoint2D}
 		const d = T(GeometricalPredicates.max_coord, GeometricalPredicates.max_coord)
 		const _trigs = DelaunayTriangle{T}[DelaunayTriangle{T}(d,c,b, 2,1,1), DelaunayTriangle{T}(a,b,c, 3,1,1), DelaunayTriangle{T}(d,c,b, 2,1,1)]
 		t = new(_trigs, 3, Int64[], 0)
-		sizehint(t._edges_to_check, 1000)
-		sizehint(t, n)
+		sizehint!(t._edges_to_check, 1000)
+		sizehint!(t, n)
 	end
 end
 DelaunayTessellation2D(n::Int64) = DelaunayTessellation2D{Point2D}(n)
 DelaunayTessellation2D{T<:AbstractPoint2D}(n::Int64, ::T) = DelaunayTessellation2D{T}(n)
 DelaunayTessellation(n::Int64=100) = DelaunayTessellation2D(n)
 
-function sizehint{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, n::Int64)
+function sizehint!{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, n::Int64)
 	const required_total_size = 2*n+10
 	required_total_size <= length(t._trigs) && return
-	sizehint(t._trigs, required_total_size)
+	sizehint!(t._trigs, required_total_size)
 	while length(t._trigs) < required_total_size
 		push!(t._trigs, copy(t._trigs[end]))
 	end	 
@@ -104,7 +104,7 @@ function sizefit_at_least{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, n::I
 	while required_total_size < minimal_acceptable_actual_size
 		required_total_size += required_total_size >>> 1
 	end
-	sizehint(t._trigs, required_total_size)
+	sizehint!(t._trigs, required_total_size)
 	while length(t._trigs) < required_total_size
 		push!(t._trigs, copy(t._trigs[end]))
 	end	 
@@ -602,7 +602,7 @@ end
 
 # push an array in given order
 function _pushunsorted!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, a::Array{T, 1})
-	sizehint(tess, length(a))
+	sizehint!(tess, length(a))
 	for p in a
 		push!(tess, p)
 	end

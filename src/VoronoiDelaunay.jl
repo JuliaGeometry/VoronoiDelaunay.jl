@@ -93,14 +93,26 @@ DelaunayTessellation2D(n::Int64) = DelaunayTessellation2D{Point2D}(n)
 DelaunayTessellation2D{T<:AbstractPoint2D}(n::Int64, ::T) = DelaunayTessellation2D{T}(n)
 DelaunayTessellation(n::Int64=100) = DelaunayTessellation2D(n)
 
-function sizehint!{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, n::Int64)
-	const required_total_size = 2*n+10
-	required_total_size <= length(t._trigs) && return
-	sizehint!(t._trigs, required_total_size)
-	while length(t._trigs) < required_total_size
-		push!(t._trigs, copy(t._trigs[end]))
-	end	 
-	t
+if VERSION < v"0.4-"
+	function sizehint{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, n::Int64)
+		const required_total_size = 2*n+10
+		required_total_size <= length(t._trigs) && return
+		sizehint!(t._trigs, required_total_size)
+		while length(t._trigs) < required_total_size
+			push!(t._trigs, copy(t._trigs[end]))
+		end	 
+		t
+	end
+else
+	function sizehint!{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, n::Int64)
+		const required_total_size = 2*n+10
+		required_total_size <= length(t._trigs) && return
+		sizehint!(t._trigs, required_total_size)
+		while length(t._trigs) < required_total_size
+			push!(t._trigs, copy(t._trigs[end]))
+		end	 
+		t
+	end
 end
 
 # growing strategy

@@ -23,7 +23,14 @@ using GeometricalPredicates
 import GeometricalPredicates
 import GeometricalPredicates: geta, getb, getc
 
-import Base:push!, start, done, next, sizehint!, copy
+import Base:push!, start, done, next, copy
+
+if VERSION < v"0.4-"
+	import Base:sizehint
+	sizehint! = sizehint
+else
+	import Base:sizehint!
+end
 
 const min_coord = GeometricalPredicates.min_coord + eps(Float64)
 const max_coord = GeometricalPredicates.max_coord - eps(Float64)

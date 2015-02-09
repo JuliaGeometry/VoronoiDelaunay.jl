@@ -1,8 +1,8 @@
 # importing all the stuff we need.
 # You'll see many warnings because of using Images and Gadfly together
-import VoronoiDelaunay: from_image, voronoiedges
+import VoronoiDelaunay: from_image, voronoiedges, getplotxy
 import Images: imread
-import Gadfly: set_default_plot_size, plot, Geom, Scale, cm
+import Gadfly: set_default_plot_size, plot, Geom, Scale, cm, draw, SVG, inch
 
 img = imread("julia.png")
 # placing points in places that represent the image.

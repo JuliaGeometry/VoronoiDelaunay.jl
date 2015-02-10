@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.org/JuliaGeometry/VoronoiDelaunay.jl.svg?branch=master)](https://travis-ci.org/JuliaGeometry/VoronoiDelaunay.jl)
-[![Coverage Status](https://img.shields.io/coveralls/skariel/VoronoiDelaunay.jl.svg)](https://coveralls.io/r/skariel/VoronoiDelaunay.jl)
-![Alt VoronoiDelaunay.jl](http://i.imgur.com/lh8VLZ5.png5 "VoronoiDelaunay.jl")
+[![Coverage Status](https://coveralls.io/repos/JuliaGeometry/VoronoiDelaunay.jl/badge.svg?branch=master)](https://coveralls.io/r/JuliaGeometry/VoronoiDelaunay.jl?branch=master)![Alt VoronoiDelaunay.jl](http://i.imgur.com/lh8VLZ5.png5 "VoronoiDelaunay.jl")
 
 Fast, robust construction of 2D Delaunay and Voronoi tessellations on generic point types.
 Implementation follows algorithms described in the [Arepo paper](http://arxiv.org/abs/0901.4107)

@@ -68,7 +68,7 @@ copy{T<:AbstractPoint2D}(t::DelaunayTriangle{T}) =
 		t._neighbour_a, t._neighbour_b, t._neighbour_c
 	)
 
-isexternal{T<:AbstractPoint2D}(t::DelaunayTriangle{T}) = 
+isexternal{T<:AbstractPoint2D}(t::DelaunayTriangle{T}) =
 	getx(geta(t)) < min_coord || getx(geta(t)) > max_coord ||
 	getx(getb(t)) < min_coord || getx(getb(t)) > max_coord ||
 	getx(getc(t)) < min_coord || getx(getc(t)) > max_coord
@@ -79,7 +79,7 @@ type DelaunayTessellation2D{T<:AbstractPoint2D}
 	_last_trig_index::Int64
 	_edges_to_check::Array{Int64, 1}
 	_total_points_added::Int64
-	function DelaunayTessellation2D(n::Int64 = 100)		
+	function DelaunayTessellation2D(n::Int64 = 100)
 		const a = T(GeometricalPredicates.min_coord, GeometricalPredicates.min_coord)
 		const b = T(GeometricalPredicates.min_coord, GeometricalPredicates.max_coord)
 		const c = T(GeometricalPredicates.max_coord, GeometricalPredicates.min_coord)
@@ -101,7 +101,7 @@ if VERSION < v"0.4-"
 		sizehint!(t._trigs, required_total_size)
 		while length(t._trigs) < required_total_size
 			push!(t._trigs, copy(t._trigs[end]))
-		end	 
+		end
 		t
 	end
 else
@@ -111,7 +111,7 @@ else
 		sizehint!(t._trigs, required_total_size)
 		while length(t._trigs) < required_total_size
 			push!(t._trigs, copy(t._trigs[end]))
-		end	 
+		end
 		t
 	end
 end
@@ -127,7 +127,7 @@ function sizefit_at_least{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, n::I
 	sizehint!(t._trigs, required_total_size)
 	while length(t._trigs) < required_total_size
 		push!(t._trigs, copy(t._trigs[end]))
-	end	 
+	end
 	t
 end
 
@@ -170,11 +170,11 @@ function delaunayedges(t::DelaunayTessellation2D)
 				produce(DelaunayEdge(getb(tr), getc(tr)))
 			end
 			const ix_nb = tr._neighbour_b
-			if !visited[ix_nb] 
+			if !visited[ix_nb]
 				produce(DelaunayEdge(geta(tr), getc(tr)))
 			end
 			const ix_nc = tr._neighbour_c
-			if !visited[ix_nc] 
+			if !visited[ix_nc]
 				produce(DelaunayEdge(geta(tr), getb(tr)))
 			end
 		end
@@ -253,21 +253,21 @@ start(t::DelaunayTessellation2D) = TrigIter(2)
 function done(t::DelaunayTessellation2D, it::TrigIter)
 	while isexternal(t._trigs[it.ix]) && it.ix <= t._last_trig_index
 		it.ix += 1
-	end	
+	end
 	it.ix > t._last_trig_index
 end
 function next(t::DelaunayTessellation2D, it::TrigIter)
-	@inbounds const trig = t._trigs[it.ix]
+	trig = t._trigs[it.ix]
 	it.ix += 1
 	(trig, it)
 end
 
 function findindex{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, p::T)
 	i::Int64 = tess._last_trig_index
-	while true		
-		@inbounds const w = intriangle(tess._trigs[i], p)
+	while true
+		w = intriangle(tess._trigs[i], p)
 		w > 0 && return i
-		@inbounds const tr = tess._trigs[i]
+		tr = tess._trigs[i]
 		i = w==-1? tr._neighbour_a : w==-2? tr._neighbour_b : tr._neighbour_c
 	end
 end
@@ -283,7 +283,7 @@ function _pushunfixed!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, p::T
 	const ltrigs1::Int64 = tess._last_trig_index+1
 	const ltrigs2::Int64 = tess._last_trig_index+2
 
-	@inbounds const t1 = tess._trigs[i]
+	t1 = tess._trigs[i]
 	old_t1_a = geta(t1)
 	seta(t1, p)
 	old_t1_b = t1._neighbour_b
@@ -291,19 +291,19 @@ function _pushunfixed!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, p::T
 	t1._neighbour_b = ltrigs1
 	t1._neighbour_c = ltrigs2
 
-	@inbounds const t2 = tess._trigs[ltrigs1]
+	t2 = tess._trigs[ltrigs1]
 	setabc(t2, old_t1_a, p, getc(t1))
 	t2._neighbour_a = i
 	t2._neighbour_b = old_t1_b
 	t2._neighbour_c = ltrigs2
 
-	@inbounds const t3 = tess._trigs[ltrigs2]
+	t3 = tess._trigs[ltrigs2]
 	setabc(t3, old_t1_a, getb(t1), p)
 	t3._neighbour_a = i
 	t3._neighbour_b = ltrigs1
 	t3._neighbour_c = old_t1_c
 
-	@inbounds const nt2 = tess._trigs[t2._neighbour_b]
+	nt2 = tess._trigs[t2._neighbour_b]
 	if nt2._neighbour_a==i
 		nt2._neighbour_a = ltrigs1
 	elseif nt2._neighbour_b==i
@@ -312,7 +312,7 @@ function _pushunfixed!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, p::T
 		nt2._neighbour_c = ltrigs1
 	end
 
-	@inbounds const nt3 = tess._trigs[t3._neighbour_c]
+	nt3 = tess._trigs[t3._neighbour_c]
 	if nt3._neighbour_a==i
 		nt3._neighbour_a = ltrigs2
 	elseif nt3._neighbour_b==i
@@ -325,10 +325,16 @@ function _pushunfixed!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, p::T
 
 	i
 end
+immutable Flip{F} end
+stagedfunction flip!{F}(tess::DelaunayTessellation2D, ix1::Int64, ix2::Int64, ::Flip{F})
+end
+
+stagedfunction flip!{F, T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T}, ::Flip{F})
+end
 
 function _flipa!(tess::DelaunayTessellation2D, ix1::Int64, ix2::Int64)
-	@inbounds const ot1 = tess._trigs[ix1]
-	@inbounds const ot2 = tess._trigs[ix2]
+	ot1 = tess._trigs[ix1]
+	ot2 = tess._trigs[ix2]
 	if ot2._neighbour_a == ix1
 		_flipaa!(tess, ix1, ix2, ot1, ot2)
 	elseif ot2._neighbour_b == ix1
@@ -339,7 +345,7 @@ function _flipa!(tess::DelaunayTessellation2D, ix1::Int64, ix2::Int64)
 end
 
 function _endflipa!(tess::DelaunayTessellation2D, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle, ot2::DelaunayTriangle)
-	@inbounds const n1 = tess._trigs[ot1._neighbour_a]
+	n1 = tess._trigs[ot1._neighbour_a]
 	if n1._neighbour_a==ix2
 		n1._neighbour_a = ix1
 	elseif n1._neighbour_b==ix2
@@ -347,7 +353,7 @@ function _endflipa!(tess::DelaunayTessellation2D, ix1::Int64, ix2::Int64, ot1::D
 	else
 		n1._neighbour_c = ix1
 	end
-	@inbounds const n2 = tess._trigs[ot2._neighbour_c]
+	n2 = tess._trigs[ot2._neighbour_c]
 	if n2._neighbour_a==ix1
 		n2._neighbour_a = ix2
 	elseif n2._neighbour_b==ix1
@@ -367,7 +373,7 @@ function _flipaa!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int6
 	setabc(ot2, geta(ot1), old_ot1_geom_b, geta(ot2))
 	ot2._neighbour_a = ot2._neighbour_b
 	ot2._neighbour_b = ix1
-	ot2._neighbour_c = old_ot1_neighbour_c	
+	ot2._neighbour_c = old_ot1_neighbour_c
 
 	_endflipa!(tess,ix1,ix2,ot1,ot2)
 end
@@ -406,8 +412,8 @@ end
 ########################
 
 function _flipb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64)
-	@inbounds const ot1 = tess._trigs[ix1]
-	@inbounds const ot2 = tess._trigs[ix2]
+	ot1 = tess._trigs[ix1]
+	ot2 = tess._trigs[ix2]
 	if ot2._neighbour_a == ix1
 		_flipba!(tess, ix1, ix2, ot1, ot2)
 	elseif ot2._neighbour_b == ix1
@@ -418,7 +424,7 @@ function _flipb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64
 end
 
 function _endflipb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
-	@inbounds const n1 = tess._trigs[ot1._neighbour_b]
+	n1 = tess._trigs[ot1._neighbour_b]
 	if n1._neighbour_a==ix2
 		n1._neighbour_a = ix1
 	elseif n1._neighbour_b==ix2
@@ -426,7 +432,7 @@ function _endflipb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::In
 	else
 		n1._neighbour_c = ix1
 	end
-	@inbounds const n2 = tess._trigs[ot2._neighbour_a]
+	n2 = tess._trigs[ot2._neighbour_a]
 	if n2._neighbour_a==ix1
 		n2._neighbour_a = ix2
 	elseif n2._neighbour_b==ix1
@@ -483,8 +489,8 @@ end
 ########################
 
 function _flipc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64)
-	@inbounds const ot1 = tess._trigs[ix1]
-	@inbounds const ot2 = tess._trigs[ix2]
+	ot1 = tess._trigs[ix1]
+	ot2 = tess._trigs[ix2]
 	if ot2._neighbour_a == ix1
 		_flipca!(tess, ix1, ix2, ot1, ot2)
 	elseif ot2._neighbour_b == ix1
@@ -495,7 +501,7 @@ function _flipc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64
 end
 
 function _endflipc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
-	@inbounds const n1 = tess._trigs[ot1._neighbour_c]
+	n1 = tess._trigs[ot1._neighbour_c]
 	if n1._neighbour_a==ix2
 		n1._neighbour_a = ix1
 	elseif n1._neighbour_b==ix2
@@ -503,7 +509,7 @@ function _endflipc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::In
 	else
 		n1._neighbour_c = ix1
 	end
-	@inbounds const n2 = tess._trigs[ot2._neighbour_b]
+	n2 = tess._trigs[ot2._neighbour_b]
 	if n2._neighbour_a==ix1
 		n2._neighbour_a = ix2
 	elseif n2._neighbour_b==ix1
@@ -558,16 +564,16 @@ function _flipcc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int6
 end
 
 function _restoredelaunayhood!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix_trig::Int64)
-	@inbounds const center_pt = geta(tess._trigs[ix_trig])
+	center_pt = geta(tess._trigs[ix_trig])
 
 	# `A` - edge
 	push!(tess._edges_to_check, ix_trig)
     while length(tess._edges_to_check) > 0
-		@inbounds const trix = tess._edges_to_check[end]
-		@inbounds const tr_i = tess._trigs[trix]
-		@inbounds const nb_a = tr_i._neighbour_a
+		trix = tess._edges_to_check[end]
+		tr_i = tess._trigs[trix]
+		nb_a = tr_i._neighbour_a
 		if nb_a > 1
-			@inbounds const tr_f = tess._trigs[nb_a]
+			tr_f = tess._trigs[nb_a]
 			if incircle(tr_f, center_pt) > 0
 				_flipa!(tess, trix, nb_a)
 				push!(tess._edges_to_check, nb_a)
@@ -580,11 +586,11 @@ function _restoredelaunayhood!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{
 	# `B` - edge
 	push!(tess._edges_to_check, tess._last_trig_index-1)
     while length(tess._edges_to_check) > 0
-		@inbounds const trix = tess._edges_to_check[end]
-		@inbounds const tr_i = tess._trigs[trix]
-		@inbounds const nb_b = tr_i._neighbour_b
+		trix = tess._edges_to_check[end]
+		tr_i = tess._trigs[trix]
+		nb_b = tr_i._neighbour_b
 		if nb_b > 1
-			@inbounds const tr_f = tess._trigs[nb_b]
+			tr_f = tess._trigs[nb_b]
 			if incircle(tr_f, center_pt) > 0
 				_flipb!(tess, trix, nb_b)
 				push!(tess._edges_to_check, nb_b)
@@ -597,11 +603,11 @@ function _restoredelaunayhood!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{
 	# `C` - edge
 	push!(tess._edges_to_check, tess._last_trig_index)
     while length(tess._edges_to_check) > 0
-		@inbounds const trix = tess._edges_to_check[end]
-		@inbounds const tr_i = tess._trigs[trix]
-		@inbounds const nb_c = tr_i._neighbour_c
+		trix = tess._edges_to_check[end]
+		tr_i = tess._trigs[trix]
+		nb_c = tr_i._neighbour_c
 		if nb_c > 1
-			@inbounds const tr_f = tess._trigs[nb_c]
+			tr_f = tess._trigs[nb_c]
 			if incircle(tr_f, center_pt) > 0
 				_flipc!(tess, trix, nb_c)
 				push!(tess._edges_to_check, nb_c)

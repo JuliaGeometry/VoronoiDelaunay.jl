@@ -1,3 +1,4 @@
+[![VoronoiDelaunay](http://pkg.julialang.org/badges/VoronoiDelaunay_release.svg)](http://pkg.julialang.org/?pkg=VoronoiDelaunay&ver=release)
 [![Build Status](https://travis-ci.org/JuliaGeometry/VoronoiDelaunay.jl.svg?branch=master)](https://travis-ci.org/JuliaGeometry/VoronoiDelaunay.jl)
 [![Coverage Status](https://coveralls.io/repos/JuliaGeometry/VoronoiDelaunay.jl/badge.svg?branch=master)](https://coveralls.io/r/JuliaGeometry/VoronoiDelaunay.jl?branch=master)![Alt VoronoiDelaunay.jl](http://i.imgur.com/lh8VLZ5.png5 "VoronoiDelaunay.jl")
 

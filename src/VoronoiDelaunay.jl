@@ -645,7 +645,7 @@ function from_image(img, npts)
 
 	# placing points in places that represent the image
 	pts = Point2D[]
-	for i in [1:npts]
+	for i in 1:npts
 		x = rand()
 		y = rand()
 		if intensity(img[@compat Int64(floor(x * size(img)[1])) + 1, @compat Int64(floor(y * size(img)[2])) + 1]) > 0.5

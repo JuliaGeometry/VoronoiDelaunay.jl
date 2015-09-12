@@ -24,7 +24,7 @@ import GeometricalPredicates
 import GeometricalPredicates: geta, getb, getc
 
 import Base:push!, start, done, next, copy
-import Color: RGB, RGBA
+import Colors: RGB, RGBA
 
 if VERSION < v"0.4-"
 	import Base:sizehint
@@ -636,7 +636,7 @@ function push!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, a::Array{T, 
 end
 
 intensity(c::RGB)  = c.b
-intensity(c::RGBA) = c.c.b
+intensity(c::RGBA) = c.b
 intensity(c) 	   = c.(1) # Workaround. Gray needs to be imported from images, which would take to long.
 
 # Create DelaunayTessellation with npts points from an image

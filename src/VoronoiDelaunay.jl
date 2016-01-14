@@ -187,7 +187,7 @@ function voronoiedges(t::DelaunayTessellation2D)
 	visited = zeros(Bool, t._last_trig_index)
 	visited[1] = true
 	function voronoiiterator()
-		@inbounds for ix in 2:t._last_trig_index
+		for ix in 2:t._last_trig_index
 			visited[ix] && continue
 			const tr = t._trigs[ix]
 			visited[ix] = true
@@ -197,29 +197,28 @@ function voronoiedges(t::DelaunayTessellation2D)
 			const ix_na = tr._neighbour_a
 			if !visited[ix_na] && !isexternal(t._trigs[ix_na])
 				const nb = t._trigs[ix_na]
-				produce(VoronoiEdge(cc, circumcenter(nb), geta(tr), nb._neighbour_a==ix? geta(nb) : nb._neighbour_b==ix? getb(nb): getc(nb)))
+				produce(VoronoiEdge(cc, circumcenter(nb), getb(tr), getc(tr)))
 			end
 			const ix_nb = tr._neighbour_b
 			if !visited[ix_nb] && !isexternal(t._trigs[ix_nb])
 				const nb = t._trigs[ix_nb]
-				produce(VoronoiEdge(cc, circumcenter(nb), getb(tr), nb._neighbour_a==ix? geta(nb) : nb._neighbour_b==ix? getb(nb): getc(nb)))
+				produce(VoronoiEdge(cc, circumcenter(nb), geta(tr), getc(tr)))
 			end
 			const ix_nc = tr._neighbour_c
 			if !visited[ix_nc] && !isexternal(t._trigs[ix_nb])
 				const nb = t._trigs[ix_nc]
-				produce(VoronoiEdge(cc, circumcenter(nb), getc(tr), nb._neighbour_a==ix? geta(nb) : nb._neighbour_b==ix? getb(nb): getc(nb)))
+				produce(VoronoiEdge(cc, circumcenter(nb), geta(tr), getb(tr)))
 			end
 		end
 	end
 	Task(voronoiiterator)
 end
 
-# TODO: is an iterator faster?
 function voronoiedgeswithoutgenerators(t::DelaunayTessellation2D)
 	visited = zeros(Bool, t._last_trig_index)
 	visited[1] = true
 	function voronoiiterator()
-		@inbounds for ix in 2:t._last_trig_index
+		for ix in 2:t._last_trig_index
 			visited[ix] && continue
 			const tr = t._trigs[ix]
 			visited[ix] = true
@@ -245,6 +244,7 @@ function voronoiedgeswithoutgenerators(t::DelaunayTessellation2D)
 	end
 	Task(voronoiiterator)
 end
+
 
 type TrigIter
 	ix::Int64

@@ -191,21 +191,21 @@ function voronoiedges(t::DelaunayTessellation2D)
 			visited[ix] && continue
 			const tr = t._trigs[ix]
 			visited[ix] = true
-			isexternal(tr) && continue
+			#isexternal(tr) && continue
 			const cc = circumcenter(tr)
 
 			const ix_na = tr._neighbour_a
-			if !visited[ix_na] && !isexternal(t._trigs[ix_na])
+			if !visited[ix_na] #&& !isexternal(t._trigs[ix_na])
 				const nb = t._trigs[ix_na]
 				produce(VoronoiEdge(cc, circumcenter(nb), getb(tr), getc(tr)))
 			end
 			const ix_nb = tr._neighbour_b
-			if !visited[ix_nb] && !isexternal(t._trigs[ix_nb])
+			if !visited[ix_nb] #&& !isexternal(t._trigs[ix_nb])
 				const nb = t._trigs[ix_nb]
 				produce(VoronoiEdge(cc, circumcenter(nb), geta(tr), getc(tr)))
 			end
 			const ix_nc = tr._neighbour_c
-			if !visited[ix_nc] && !isexternal(t._trigs[ix_nb])
+			if !visited[ix_nc] #&& !isexternal(t._trigs[ix_nb])
 				const nb = t._trigs[ix_nc]
 				produce(VoronoiEdge(cc, circumcenter(nb), geta(tr), getb(tr)))
 			end
@@ -222,21 +222,21 @@ function voronoiedgeswithoutgenerators(t::DelaunayTessellation2D)
 			visited[ix] && continue
 			const tr = t._trigs[ix]
 			visited[ix] = true
-			isexternal(tr) && continue
+			#isexternal(tr) && continue
 			const cc = circumcenter(tr)
 
 			const ix_na = tr._neighbour_a
-			if !visited[ix_na] && !isexternal(t._trigs[ix_na])
+			if !visited[ix_na] #&& !isexternal(t._trigs[ix_na])
 				const nb = t._trigs[ix_na]
 				produce(VoronoiEdgeWithoutGenerators(cc, circumcenter(nb)))
 			end
 			const ix_nb = tr._neighbour_b
-			if !visited[ix_nb] && !isexternal(t._trigs[ix_nb])
+			if !visited[ix_nb] #&& !isexternal(t._trigs[ix_nb])
 				const nb = t._trigs[ix_nb]
 				produce(VoronoiEdgeWithoutGenerators(cc, circumcenter(nb)))
 			end
 			const ix_nc = tr._neighbour_c
-			if !visited[ix_nc] && !isexternal(t._trigs[ix_nc])
+			if !visited[ix_nc] #&& !isexternal(t._trigs[ix_nc])
 				const nb = t._trigs[ix_nc]
 				produce(VoronoiEdgeWithoutGenerators(cc, circumcenter(nb)))
 			end

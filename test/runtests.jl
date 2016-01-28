@@ -95,7 +95,7 @@ using Base.Test
 	@test geta(tess._trigs[5]) == pa
 	@test getb(tess._trigs[5]) == pb
 	@test getc(tess._trigs[5]) == pp
-	
+
 	@test tess._trigs[5]._neighbour_a == 2
 	@test tess._trigs[5]._neighbour_b == 4
 	@test tess._trigs[5]._neighbour_c == 1
@@ -231,7 +231,7 @@ using Base.Test
 	point_arr = Point2D[]
 	n=1000
 	tess = DelaunayTessellation2D(n*10)
-	for i in [1:n]
+	for i in 1:n
 		push!(point_arr, Point2D(rand()+1.0, rand()+1.0))
 	end
 	push!(tess, point_arr)
@@ -240,7 +240,7 @@ using Base.Test
 	for p in point_arr
 		for t in tess._trigs[2:tess._last_trig_index]
 			try
-				@test incircle(t, p) <= 0 
+				@test incircle(t, p) <= 0
 			catch e
 				if (p == geta(t)) || (p == getb(t)) || (p == getc(t))
 					continue
@@ -263,7 +263,7 @@ using Base.Test
 	for p in point_arr
 		for t in tess._trigs[2:tess._last_trig_index]
 			try
-				@test incircle(t, p) <= 0 
+				@test incircle(t, p) <= 0
 			catch e
 				if (p == geta(t)) || (p == getb(t)) || (p == getc(t))
 					continue

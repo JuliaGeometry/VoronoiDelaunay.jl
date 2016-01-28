@@ -18,6 +18,7 @@ export
 	Point, Point2D, AbstractPoint2D, getx, gety, geta, getb, getc,
 	getplotxy
 
+using Compat
 
 using GeometricalPredicates
 import GeometricalPredicates
@@ -68,7 +69,7 @@ copy{T<:AbstractPoint2D}(t::DelaunayTriangle{T}) =
 		t._neighbour_a, t._neighbour_b, t._neighbour_c
 	)
 
-isexternal{T<:AbstractPoint2D}(t::DelaunayTriangle{T}) = 
+isexternal{T<:AbstractPoint2D}(t::DelaunayTriangle{T}) =
 	getx(geta(t)) < min_coord || getx(geta(t)) > max_coord ||
 	getx(getb(t)) < min_coord || getx(getb(t)) > max_coord ||
 	getx(getc(t)) < min_coord || getx(getc(t)) > max_coord
@@ -79,7 +80,7 @@ type DelaunayTessellation2D{T<:AbstractPoint2D}
 	_last_trig_index::Int64
 	_edges_to_check::Array{Int64, 1}
 	_total_points_added::Int64
-	function DelaunayTessellation2D(n::Int64 = 100)		
+	function DelaunayTessellation2D(n::Int64 = 100)
 		const a = T(GeometricalPredicates.min_coord, GeometricalPredicates.min_coord)
 		const b = T(GeometricalPredicates.min_coord, GeometricalPredicates.max_coord)
 		const c = T(GeometricalPredicates.max_coord, GeometricalPredicates.min_coord)
@@ -101,7 +102,7 @@ if VERSION < v"0.4-"
 		sizehint!(t._trigs, required_total_size)
 		while length(t._trigs) < required_total_size
 			push!(t._trigs, copy(t._trigs[end]))
-		end	 
+		end
 		t
 	end
 else
@@ -111,7 +112,7 @@ else
 		sizehint!(t._trigs, required_total_size)
 		while length(t._trigs) < required_total_size
 			push!(t._trigs, copy(t._trigs[end]))
-		end	 
+		end
 		t
 	end
 end
@@ -127,7 +128,7 @@ function sizefit_at_least{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, n::I
 	sizehint!(t._trigs, required_total_size)
 	while length(t._trigs) < required_total_size
 		push!(t._trigs, copy(t._trigs[end]))
-	end	 
+	end
 	t
 end
 
@@ -170,11 +171,11 @@ function delaunayedges(t::DelaunayTessellation2D)
 				produce(DelaunayEdge(getb(tr), getc(tr)))
 			end
 			const ix_nb = tr._neighbour_b
-			if !visited[ix_nb] 
+			if !visited[ix_nb]
 				produce(DelaunayEdge(geta(tr), getc(tr)))
 			end
 			const ix_nc = tr._neighbour_c
-			if !visited[ix_nc] 
+			if !visited[ix_nc]
 				produce(DelaunayEdge(geta(tr), getb(tr)))
 			end
 		end
@@ -253,7 +254,7 @@ start(t::DelaunayTessellation2D) = TrigIter(2)
 function done(t::DelaunayTessellation2D, it::TrigIter)
 	while isexternal(t._trigs[it.ix]) && it.ix <= t._last_trig_index
 		it.ix += 1
-	end	
+	end
 	it.ix > t._last_trig_index
 end
 function next(t::DelaunayTessellation2D, it::TrigIter)
@@ -264,7 +265,7 @@ end
 
 function findindex{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, p::T)
 	i::Int64 = tess._last_trig_index
-	while true		
+	while true
 		@inbounds const w = intriangle(tess._trigs[i], p)
 		w > 0 && return i
 		@inbounds const tr = tess._trigs[i]
@@ -367,7 +368,7 @@ function _flipaa!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int6
 	setabc(ot2, geta(ot1), old_ot1_geom_b, geta(ot2))
 	ot2._neighbour_a = ot2._neighbour_b
 	ot2._neighbour_b = ix1
-	ot2._neighbour_c = old_ot1_neighbour_c	
+	ot2._neighbour_c = old_ot1_neighbour_c
 
 	_endflipa!(tess,ix1,ix2,ot1,ot2)
 end
@@ -647,7 +648,7 @@ function from_image(img, npts)
 	for i in 1:npts
 		x = rand()
 		y = rand()
-		if intensity(img[int64(floor(x * size(img)[1])) + 1, int64(floor(y * size(img)[2])) + 1]) > 0.5
+		if intensity(img[@compat Int64(floor(x * size(img)[1])) + 1, @compat Int64(floor(y * size(img)[2])) + 1]) > 0.5
 			if rand() < 0.100
 				push!(pts, Point2D(1.0 + rand(), 1.0 + rand()))
 			end

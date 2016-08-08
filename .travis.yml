@@ -1,8 +1,7 @@
 language: julia
 julia:
-  - 0.3
   - 0.4
-  - nightly
+  - 0.5
 notifications:
   email: false
 after_success:

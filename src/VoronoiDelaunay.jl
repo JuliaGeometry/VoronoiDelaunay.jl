@@ -24,42 +24,53 @@ using GeometricalPredicates
 import GeometricalPredicates
 import GeometricalPredicates: geta, getb, getc
 
-import Base:push!, start, done, next, copy
+import Base: push!, start, done, next, copy, sizehint!
 import Colors: RGB, RGBA
-
-if VERSION < v"0.4-"
-	import Base:sizehint
-	sizehint! = sizehint
-else
-	import Base:sizehint!
-end
 
 const min_coord = GeometricalPredicates.min_coord + eps(Float64)
 const max_coord = GeometricalPredicates.max_coord - eps(Float64)
 
 type DelaunayTriangle{T<:AbstractPoint2D} <: AbstractNegativelyOrientedTriangle
-    _a::T; _b::T; _c::T
-    _bx::Float64; _by::Float64
-    _cx::Float64; _cy::Float64
-    _px::Float64; _py::Float64
-    _pr2::Float64
-	_neighbour_a::Int64
-	_neighbour_b::Int64
-	_neighbour_c::Int64
-    function DelaunayTriangle(pa::T, pb::T, pc::T, na::Int64, nb::Int64, nc::Int64)
-        t = new(pa, pb, pc, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, na, nb, nc)
-        clean!(t)
-        t
-    end
-    # this constructor is good for making copies
-    DelaunayTriangle(pa::T, pb::T, pc::T, bx::Float64, by::Float64, cx::Float64, cy::Float64, px::Float64, py::Float64, pr2::Float64, na::Int64, nb::Int64, nc::Int64) =
-        new(pa, pb, pc, bx, by, cx, cy, px, py, pr2, na, nb, nc)
-end
-DelaunayTriangle{T<:AbstractPoint2D}(pa::T, pb::T, pc::T, na::Int64, nb::Int64, nc::Int64) = DelaunayTriangle{T}(pa, pb, pc, na, nb, nc)
-DelaunayTriangle{T<:AbstractPoint2D}(pa::T, pb::T, pc::T, bx::Float64, by::Float64, cx::Float64, cy::Float64, px::Float64, py::Float64, pr2::Float64, na::Int64, nb::Int64, nc::Int64) =
-    DelaunayTriangle{T}(pa, pb, pc, bx, by, cx, cy, px, py, pr2, na, nb, nc)
+  _a::T; _b::T; _c::T
+  _bx::Float64; _by::Float64
+  _cx::Float64; _cy::Float64
+  _px::Float64; _py::Float64
+  _pr2::Float64
+  _neighbour_a::Int64
+  _neighbour_b::Int64
+  _neighbour_c::Int64
 
-copy{T<:AbstractPoint2D}(t::DelaunayTriangle{T}) =
+	function DelaunayTriangle(pa::T, pb::T, pc::T,
+			                      na::Int64, nb::Int64, nc::Int64)
+      t = new(pa, pb, pc, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, na, nb, nc)
+      clean!(t)
+      t
+  end
+
+	# this constructor is good for making copies
+  function DelaunayTriangle(pa::T, pb::T, pc::T,
+		                        bx::Float64, by::Float64,
+														cx::Float64, cy::Float64,
+														px::Float64, py::Float64,
+														pr2::Float64,
+														na::Int64, nb::Int64, nc::Int64)
+		new(pa, pb, pc, bx, by, cx, cy, px, py, pr2, na, nb, nc)
+	end
+end
+function DelaunayTriangle{T<:AbstractPoint2D}(pa::T, pb::T, pc::T,
+																							na::Int64, nb::Int64, nc::Int64)
+	DelaunayTriangle{T}(pa, pb, pc, na, nb, nc)
+end
+function DelaunayTriangle{T<:AbstractPoint2D}(pa::T, pb::T, pc::T,
+																							bx::Float64, by::Float64,
+																							cx::Float64, cy::Float64,
+																							px::Float64, py::Float64,
+																							pr2::Float64,
+																							na::Int64, nb::Int64, nc::Int64)
+  DelaunayTriangle{T}(pa, pb, pc, bx, by, cx, cy, px, py, pr2, na, nb, nc)
+end
+
+function copy{T<:AbstractPoint2D}(t::DelaunayTriangle{T})
 	DelaunayTriangle(
 		t._a, t._b, t._c,
 		t._bx, t._by,
@@ -68,24 +79,29 @@ copy{T<:AbstractPoint2D}(t::DelaunayTriangle{T}) =
 		t._pr2,
 		t._neighbour_a, t._neighbour_b, t._neighbour_c
 	)
+end
 
-isexternal{T<:AbstractPoint2D}(t::DelaunayTriangle{T}) =
+function isexternal{T<:AbstractPoint2D}(t::DelaunayTriangle{T})
 	getx(geta(t)) < min_coord || getx(geta(t)) > max_coord ||
 	getx(getb(t)) < min_coord || getx(getb(t)) > max_coord ||
 	getx(getc(t)) < min_coord || getx(getc(t)) > max_coord
-
+end
 
 type DelaunayTessellation2D{T<:AbstractPoint2D}
-	_trigs::Array{DelaunayTriangle{T}, 1}
+	_trigs::Vector{DelaunayTriangle{T}}
 	_last_trig_index::Int64
-	_edges_to_check::Array{Int64, 1}
+	_edges_to_check::Vector{Int64}
 	_total_points_added::Int64
+
 	function DelaunayTessellation2D(n::Int64 = 100)
 		const a = T(GeometricalPredicates.min_coord, GeometricalPredicates.min_coord)
 		const b = T(GeometricalPredicates.min_coord, GeometricalPredicates.max_coord)
 		const c = T(GeometricalPredicates.max_coord, GeometricalPredicates.min_coord)
 		const d = T(GeometricalPredicates.max_coord, GeometricalPredicates.max_coord)
-		const _trigs = DelaunayTriangle{T}[DelaunayTriangle{T}(d,c,b, 2,1,1), DelaunayTriangle{T}(a,b,c, 3,1,1), DelaunayTriangle{T}(d,c,b, 2,1,1)]
+		const t1 = DelaunayTriangle{T}(d,c,b, 2,1,1)
+		const t2 = DelaunayTriangle{T}(a,b,c, 3,1,1)
+		const t3 = DelaunayTriangle{T}(d,c,b, 2,1,1)
+		const _trigs = DelaunayTriangle{T}[t1, t2, t3]
 		t = new(_trigs, 3, Int64[], 0)
 		sizehint!(t._edges_to_check, 1000)
 		sizehint!(t, n)
@@ -95,26 +111,14 @@ DelaunayTessellation2D(n::Int64) = DelaunayTessellation2D{Point2D}(n)
 DelaunayTessellation2D{T<:AbstractPoint2D}(n::Int64, ::T) = DelaunayTessellation2D{T}(n)
 DelaunayTessellation(n::Int64=100) = DelaunayTessellation2D(n)
 
-if VERSION < v"0.4-"
-	function sizehint{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, n::Int64)
-		const required_total_size = 2*n+10
-		required_total_size <= length(t._trigs) && return
-		sizehint!(t._trigs, required_total_size)
-		while length(t._trigs) < required_total_size
-			push!(t._trigs, copy(t._trigs[end]))
-		end
-		t
+function sizehint!{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, n::Int64)
+	const required_total_size = 2n + 10
+	required_total_size <= length(t._trigs) && return
+	sizehint!(t._trigs, required_total_size)
+	while length(t._trigs) < required_total_size
+		push!(t._trigs, copy(t._trigs[end]))
 	end
-else
-	function sizehint!{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, n::Int64)
-		const required_total_size = 2*n+10
-		required_total_size <= length(t._trigs) && return
-		sizehint!(t._trigs, required_total_size)
-		while length(t._trigs) < required_total_size
-			push!(t._trigs, copy(t._trigs[end]))
-		end
-		t
-	end
+	t
 end
 
 # growing strategy
@@ -269,15 +273,24 @@ function findindex{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, p::T)
 		@inbounds const w = intriangle(tess._trigs[i], p)
 		w > 0 && return i
 		@inbounds const tr = tess._trigs[i]
-		i = w==-1? tr._neighbour_a : w==-2? tr._neighbour_b : tr._neighbour_c
+		if w == -1
+			i = tr._neighbour_a
+		elseif w == -2
+			i = tr._neighbour_b
+		else
+			i = tr._neighbour_c
+		end
 	end
 end
 
 locate{T<:AbstractPoint2D}(t::DelaunayTessellation2D{T}, p::T) = t._trigs[findindex(t, p)]
 
-movea{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, trig::DelaunayTriangle{T}) = tess._trigs[trig._neighbour_a]
-moveb{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, trig::DelaunayTriangle{T}) = tess._trigs[trig._neighbour_b]
-movec{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, trig::DelaunayTriangle{T}) = tess._trigs[trig._neighbour_c]
+movea{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+												  trig::DelaunayTriangle{T}) = tess._trigs[trig._neighbour_a]
+moveb{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+                          trig::DelaunayTriangle{T}) = tess._trigs[trig._neighbour_b]
+movec{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+                          trig::DelaunayTriangle{T}) = tess._trigs[trig._neighbour_c]
 
 function _pushunfixed!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, p::T)
 	i = findindex(tess, p)
@@ -339,7 +352,9 @@ function _flipa!(tess::DelaunayTessellation2D, ix1::Int64, ix2::Int64)
 	end
 end
 
-function _endflipa!(tess::DelaunayTessellation2D, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle, ot2::DelaunayTriangle)
+function _endflipa!(tess::DelaunayTessellation2D,
+	                  ix1::Int64, ix2::Int64,
+										ot1::DelaunayTriangle, ot2::DelaunayTriangle)
 	@inbounds const n1 = tess._trigs[ot1._neighbour_a]
 	if n1._neighbour_a==ix2
 		n1._neighbour_a = ix1
@@ -358,14 +373,17 @@ function _endflipa!(tess::DelaunayTessellation2D, ix1::Int64, ix2::Int64, ot1::D
 	end
 end
 
-function _flipaa!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
+function _flipaa!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+																			ix1::Int64, ix2::Int64,
+																			ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
 	old_ot1_geom_b = getb(ot1)
 	setb(ot1, geta(ot2))
 	ot1._neighbour_a = ot2._neighbour_c
 	old_ot1_neighbour_c = ot1._neighbour_c
 	ot1._neighbour_c = ix2
 
-	setabc(ot2, geta(ot1), old_ot1_geom_b, geta(ot2))
+	newc = geta(ot2)
+	setabc(ot2, geta(ot1), old_ot1_geom_b, newc)
 	ot2._neighbour_a = ot2._neighbour_b
 	ot2._neighbour_b = ix1
 	ot2._neighbour_c = old_ot1_neighbour_c
@@ -373,16 +391,17 @@ function _flipaa!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int6
 	_endflipa!(tess,ix1,ix2,ot1,ot2)
 end
 
-function _flipab!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
+function _flipab!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+																			ix1::Int64, ix2::Int64,
+																			ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
 	old_ot1_geom_b = getb(ot1)
-
 	setb(ot1, getb(ot2))
 	ot1._neighbour_a = ot2._neighbour_a
 	old_ot1_neighbour_c = ot1._neighbour_c
 	ot1._neighbour_c = ix2
 
-
-	setabc(ot2, geta(ot1), old_ot1_geom_b, getb(ot2))
+	newc = getb(ot2)
+	setabc(ot2, geta(ot1), old_ot1_geom_b, newc)
 	ot2._neighbour_a = ot2._neighbour_c
 	ot2._neighbour_b = ix1
 	ot2._neighbour_c = old_ot1_neighbour_c
@@ -390,7 +409,9 @@ function _flipab!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int6
 	_endflipa!(tess,ix1,ix2,ot1,ot2)
 end
 
-function _flipac!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
+function _flipac!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+																			ix1::Int64, ix2::Int64,
+																			ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
 	old_ot1_geom_b = getb(ot1)
 	setb(ot1, getc(ot2))
 	ot1._neighbour_a = ot2._neighbour_b
@@ -406,7 +427,8 @@ end
 
 ########################
 
-function _flipb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64)
+function _flipb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+	                                   ix1::Int64, ix2::Int64)
 	@inbounds const ot1 = tess._trigs[ix1]
 	@inbounds const ot2 = tess._trigs[ix2]
 	if ot2._neighbour_a == ix1
@@ -418,7 +440,9 @@ function _flipb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64
 	end
 end
 
-function _endflipb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
+function _endflipb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+	                                      ix1::Int64, ix2::Int64,
+																				ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
 	@inbounds const n1 = tess._trigs[ot1._neighbour_b]
 	if n1._neighbour_a==ix2
 		n1._neighbour_a = ix1
@@ -437,7 +461,9 @@ function _endflipb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::In
 	end
 end
 
-function _flipba!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
+function _flipba!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+																		  ix1::Int64, ix2::Int64,
+																			ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
 	old_ot1_geom_c = getc(ot1)
 	setc(ot1, geta(ot2))
 	old_ot1_neighbour_a = ot1._neighbour_a
@@ -451,14 +477,17 @@ function _flipba!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int6
 	_endflipb!(tess,ix1,ix2,ot1,ot2)
 end
 
-function _flipbb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
+function _flipbb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+																			ix1::Int64, ix2::Int64,
+																			ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
 	old_ot1_geom_c = getc(ot1)
 	setc(ot1, getb(ot2))
 	old_ot1_neighbour_a = ot1._neighbour_a
 	ot1._neighbour_a = ix2
 	ot1._neighbour_b = ot2._neighbour_a
 
-	setabc(ot2, getb(ot2), getb(ot1), old_ot1_geom_c)
+	newa = getb(ot2)
+	setabc(ot2, newa, getb(ot1), old_ot1_geom_c)
 	ot2._neighbour_a = old_ot1_neighbour_a
 	ot2._neighbour_b = ot2._neighbour_c
 	ot2._neighbour_c = ix1
@@ -466,14 +495,17 @@ function _flipbb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int6
 	_endflipb!(tess,ix1,ix2,ot1,ot2)
 end
 
-function _flipbc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
+function _flipbc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+																			ix1::Int64, ix2::Int64,
+																			ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
 	old_ot1_geom_c = getc(ot1)
 	setc(ot1, getc(ot2))
 	old_ot1_neighbour_a = ot1._neighbour_a
 	ot1._neighbour_a = ix2
 	ot1._neighbour_b = ot2._neighbour_b
 
-	setabc(ot2, getc(ot2), getb(ot1), old_ot1_geom_c)
+	newa = getc(ot2)
+	setabc(ot2, newa, getb(ot1), old_ot1_geom_c)
 	ot2._neighbour_b = ot2._neighbour_a
 	ot2._neighbour_a = old_ot1_neighbour_a
 	ot2._neighbour_c = ix1
@@ -483,7 +515,8 @@ end
 
 ########################
 
-function _flipc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64)
+function _flipc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+																		 ix1::Int64, ix2::Int64)
 	@inbounds const ot1 = tess._trigs[ix1]
 	@inbounds const ot2 = tess._trigs[ix2]
 	if ot2._neighbour_a == ix1
@@ -495,7 +528,9 @@ function _flipc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64
 	end
 end
 
-function _endflipc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
+function _endflipc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+																				ix1::Int64, ix2::Int64,
+																				ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
 	@inbounds const n1 = tess._trigs[ot1._neighbour_c]
 	if n1._neighbour_a==ix2
 		n1._neighbour_a = ix1
@@ -514,14 +549,17 @@ function _endflipc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::In
 	end
 end
 
-function _flipca!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
+function _flipca!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+																			ix1::Int64, ix2::Int64,
+																			ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
 	old_ot1_geom_a = geta(ot1)
 	seta(ot1, geta(ot2))
 	old_ot1_neighbour_b = ot1._neighbour_b
 	ot1._neighbour_b = ix2
 	ot1._neighbour_c = ot2._neighbour_c
 
-	setabc(ot2, old_ot1_geom_a, geta(ot2), getc(ot1))
+	newb = geta(ot2)
+	setabc(ot2, old_ot1_geom_a, newb, getc(ot1))
 	ot2._neighbour_a = ix1
 	ot2._neighbour_c = ot2._neighbour_b
 	ot2._neighbour_b = old_ot1_neighbour_b
@@ -529,7 +567,9 @@ function _flipca!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int6
 	_endflipc!(tess,ix1,ix2,ot1,ot2)
 end
 
-function _flipcb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
+function _flipcb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+																			ix1::Int64, ix2::Int64,
+																			ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
 	old_ot1_geom_a = geta(ot1)
 	seta(ot1, getb(ot2))
 	old_ot1_neighbour_b = ot1._neighbour_b
@@ -543,14 +583,17 @@ function _flipcb!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int6
 	_endflipc!(tess,ix1,ix2,ot1,ot2)
 end
 
-function _flipcc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int64, ix2::Int64, ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
+function _flipcc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+																			ix1::Int64, ix2::Int64,
+																			ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T})
 	old_ot1_geom_a = geta(ot1)
 	seta(ot1, getc(ot2))
 	old_ot1_neighbour_b = ot1._neighbour_b
 	ot1._neighbour_b = ix2
 	ot1._neighbour_c = ot2._neighbour_b
 
-	setabc(ot2, old_ot1_geom_a, getc(ot2), getc(ot1))
+	newb = getc(ot2)
+	setabc(ot2, old_ot1_geom_a, newb, getc(ot1))
 	ot2._neighbour_c = ot2._neighbour_a
 	ot2._neighbour_a = ix1
 	ot2._neighbour_b = old_ot1_neighbour_b
@@ -558,12 +601,13 @@ function _flipcc!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix1::Int6
 	_endflipc!(tess,ix1,ix2,ot1,ot2)
 end
 
-function _restoredelaunayhood!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T}, ix_trig::Int64)
+function _restoredelaunayhood!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{T},
+	                                                 ix_trig::Int64)
 	@inbounds const center_pt = geta(tess._trigs[ix_trig])
 
 	# `A` - edge
 	push!(tess._edges_to_check, ix_trig)
-    while length(tess._edges_to_check) > 0
+  while length(tess._edges_to_check) > 0
 		@inbounds const trix = tess._edges_to_check[end]
 		@inbounds const tr_i = tess._trigs[trix]
 		@inbounds const nb_a = tr_i._neighbour_a
@@ -580,7 +624,7 @@ function _restoredelaunayhood!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{
 
 	# `B` - edge
 	push!(tess._edges_to_check, tess._last_trig_index-1)
-    while length(tess._edges_to_check) > 0
+  while length(tess._edges_to_check) > 0
 		@inbounds const trix = tess._edges_to_check[end]
 		@inbounds const tr_i = tess._trigs[trix]
 		@inbounds const nb_b = tr_i._neighbour_b
@@ -597,7 +641,7 @@ function _restoredelaunayhood!{T<:AbstractPoint2D}(tess::DelaunayTessellation2D{
 
 	# `C` - edge
 	push!(tess._edges_to_check, tess._last_trig_index)
-    while length(tess._edges_to_check) > 0
+  while length(tess._edges_to_check) > 0
 		@inbounds const trix = tess._edges_to_check[end]
 		@inbounds const tr_i = tess._trigs[trix]
 		@inbounds const nb_c = tr_i._neighbour_c
@@ -638,7 +682,7 @@ end
 
 intensity(c::RGB)  = c.b
 intensity(c::RGBA) = c.b
-intensity(c) 	   = c.(1) # Workaround. Gray needs to be imported from images, which would take to long.
+intensity(c) 	     = getfield(c, 1) # Workaround. Gray needs to be imported from images, which would take to long.
 
 # Create DelaunayTessellation with npts points from an image
 function from_image(img, npts)

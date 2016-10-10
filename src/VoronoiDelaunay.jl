@@ -16,7 +16,7 @@ export
 	start, next, done,
 	findindex, push!,
 	Point, Point2D, AbstractPoint2D, getx, gety, geta, getb, getc,
-	getplotxy
+	getgena, getgenb, getplotxy
 
 using Compat
 

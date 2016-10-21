@@ -7,7 +7,7 @@ module VoronoiDelaunay
 #
 # Author: Ariel Keselman (skariel@gmail.com)
 # License: MIT
-# Bug reportss welcome!
+# Bug reports welcome!
 
 export
 	DelaunayTessellation, DelaunayTessellation2D, sizehint!, isexternal,
@@ -21,7 +21,6 @@ export
 using Compat
 
 using GeometricalPredicates
-import GeometricalPredicates
 import GeometricalPredicates: geta, getb, getc
 
 import Base: push!, start, done, next, copy, sizehint!

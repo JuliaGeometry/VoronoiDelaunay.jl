@@ -163,7 +163,7 @@ getb(e::VoronoiEdgeWithoutGenerators) = e._b
 # TODO: is an iterator faster?
 function delaunayedges(t::DelaunayTessellation2D)
     visited = zeros(Bool, t._last_trig_index)
-    function delaunayiterator()
+    function delaunayiterator(c::Channel)
         @inbounds for ix in 2:t._last_trig_index
             const tr = t._trigs[ix]
             isexternal(tr) && continue
@@ -171,26 +171,26 @@ function delaunayedges(t::DelaunayTessellation2D)
             visited[ix] = true
             const ix_na = tr._neighbour_a
             if !visited[ix_na]
-                produce(DelaunayEdge(getb(tr), getc(tr)))
+                put!(c, DelaunayEdge(getb(tr), getc(tr)))
             end
             const ix_nb = tr._neighbour_b
             if !visited[ix_nb]
-                produce(DelaunayEdge(geta(tr), getc(tr)))
+                put!(c, DelaunayEdge(geta(tr), getc(tr)))
             end
             const ix_nc = tr._neighbour_c
             if !visited[ix_nc]
-                produce(DelaunayEdge(geta(tr), getb(tr)))
+                put!(c, DelaunayEdge(geta(tr), getb(tr)))
             end
         end
     end
-    Task(delaunayiterator)
+    Channel(delaunayiterator)
 end
 
 # TODO: is an iterator faster?
 function voronoiedges(t::DelaunayTessellation2D)
     visited = zeros(Bool, t._last_trig_index)
     visited[1] = true
-    function voronoiiterator()
+    function voronoiiterator(c::Channel)
         for ix in 2:t._last_trig_index
             visited[ix] && continue
             const tr = t._trigs[ix]
@@ -201,27 +201,27 @@ function voronoiedges(t::DelaunayTessellation2D)
             const ix_na = tr._neighbour_a
             if !visited[ix_na] #&& !isexternal(t._trigs[ix_na])
                 const nb = t._trigs[ix_na]
-                produce(VoronoiEdge(cc, circumcenter(nb), getb(tr), getc(tr)))
+                out!(c, VoronoiEdge(cc, circumcenter(nb), getb(tr), getc(tr)))
             end
             const ix_nb = tr._neighbour_b
             if !visited[ix_nb] #&& !isexternal(t._trigs[ix_nb])
                 const nb = t._trigs[ix_nb]
-                produce(VoronoiEdge(cc, circumcenter(nb), geta(tr), getc(tr)))
+                put!(c, VoronoiEdge(cc, circumcenter(nb), geta(tr), getc(tr)))
             end
             const ix_nc = tr._neighbour_c
             if !visited[ix_nc] #&& !isexternal(t._trigs[ix_nb])
                 const nb = t._trigs[ix_nc]
-                produce(VoronoiEdge(cc, circumcenter(nb), geta(tr), getb(tr)))
+                put!(c, VoronoiEdge(cc, circumcenter(nb), geta(tr), getb(tr)))
             end
         end
     end
-    Task(voronoiiterator)
+    Channel(voronoiiterator)
 end
 
 function voronoiedgeswithoutgenerators(t::DelaunayTessellation2D)
     visited = zeros(Bool, t._last_trig_index)
     visited[1] = true
-    function voronoiiterator()
+    function voronoiiterator(c::Channel)
         for ix in 2:t._last_trig_index
             visited[ix] && continue
             const tr = t._trigs[ix]
@@ -232,21 +232,21 @@ function voronoiedgeswithoutgenerators(t::DelaunayTessellation2D)
             const ix_na = tr._neighbour_a
             if !visited[ix_na] #&& !isexternal(t._trigs[ix_na])
                 const nb = t._trigs[ix_na]
-                produce(VoronoiEdgeWithoutGenerators(cc, circumcenter(nb)))
+                put!(c, VoronoiEdgeWithoutGenerators(cc, circumcenter(nb)))
             end
             const ix_nb = tr._neighbour_b
             if !visited[ix_nb] #&& !isexternal(t._trigs[ix_nb])
                 const nb = t._trigs[ix_nb]
-                produce(VoronoiEdgeWithoutGenerators(cc, circumcenter(nb)))
+                put!(c, VoronoiEdgeWithoutGenerators(cc, circumcenter(nb)))
             end
             const ix_nc = tr._neighbour_c
             if !visited[ix_nc] #&& !isexternal(t._trigs[ix_nc])
                 const nb = t._trigs[ix_nc]
-                produce(VoronoiEdgeWithoutGenerators(cc, circumcenter(nb)))
+                put!(c, VoronoiEdgeWithoutGenerators(cc, circumcenter(nb)))
             end
         end
     end
-    Task(voronoiiterator)
+    Channel(voronoiiterator)
 end
 
 

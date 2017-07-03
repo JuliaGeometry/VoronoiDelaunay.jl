@@ -39,20 +39,20 @@ type DelaunayTriangle{T<:AbstractPoint2D} <: AbstractNegativelyOrientedTriangle
     _neighbour_b::Int64
     _neighbour_c::Int64
 
-    function DelaunayTriangle(pa::T, pb::T, pc::T,
-                              na::Int64, nb::Int64, nc::Int64)
+    function DelaunayTriangle{T}(pa::T, pb::T, pc::T,
+                                 na::Int64, nb::Int64, nc::Int64) where T
         t = new(pa, pb, pc, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, na, nb, nc)
         clean!(t)
         t
     end
 
     # this constructor is good for making copies
-    function DelaunayTriangle(pa::T, pb::T, pc::T,
-                              bx::Float64, by::Float64,
-                              cx::Float64, cy::Float64,
-                              px::Float64, py::Float64,
-                              pr2::Float64,
-                              na::Int64, nb::Int64, nc::Int64)
+    function DelaunayTriangle{T}(pa::T, pb::T, pc::T,
+                                 bx::Float64, by::Float64,
+                                 cx::Float64, cy::Float64,
+                                 px::Float64, py::Float64,
+                                 pr2::Float64,
+                                 na::Int64, nb::Int64, nc::Int64) where T
         new(pa, pb, pc, bx, by, cx, cy, px, py, pr2, na, nb, nc)
     end
 end
@@ -92,7 +92,7 @@ type DelaunayTessellation2D{T<:AbstractPoint2D}
     _edges_to_check::Vector{Int64}
     _total_points_added::Int64
 
-    function DelaunayTessellation2D(n::Int64 = 100)
+    function DelaunayTessellation2D{T}(n::Int64 = 100) where T
         const a = T(GeometricalPredicates.min_coord, GeometricalPredicates.min_coord)
         const b = T(GeometricalPredicates.min_coord, GeometricalPredicates.max_coord)
         const c = T(GeometricalPredicates.max_coord, GeometricalPredicates.min_coord)

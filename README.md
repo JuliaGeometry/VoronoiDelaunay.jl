@@ -22,12 +22,12 @@ Current limitations
 
 How to use?
 --------------
-###Installation
+### Installation
 ```Julia
 Pkg.add("VoronoiDelaunay")
 ```
 
-###Building a tessellation
+### Building a tessellation
 Define and push individual points like this:
 ```Julia
 using  VoronoiDelaunay
@@ -50,7 +50,7 @@ or at any later point:
 ```Julia
 sizehint(tess, 100)
 ```
-###Iterating
+### Iterating
 Delaunay tesselations need at least 3 points to be well defined. Voronoi need 4. Remember this when iterating or plotting.
 Iterating over Delaunay edges is done like this:
 ```Julia
@@ -92,7 +92,7 @@ end
 ```
 `delaunaytriangle` here is of type `DelaunayTriagle` which is s subtype of `AbstractNegativelyOrientedTriangle`. To get the generators of this triangle use the `geta`, `getb`, and `getc` methods. You can do all other operations and predicate tests on this triangle as explained in [GeometricalPredicates](https://github.com/skariel/GeometricalPredicates.jl)
 
-###Navigating
+### Navigating
 Locating a point, i.e. finding the triangle it is inside:
 ```Julia
 t = locate(tess, Point(1.2, 1.3))
@@ -106,7 +106,7 @@ t = moveb(tess, t)  # move to the direction infront of generator b
 t = movec(tess, t)  # move to the direction infront of generator c
 ```
 
-###Plotting
+### Plotting
 The following retrieves a couple of vectors ready to plot Voronoi edges:
 ```Julia
 x, y = getplotxy(voronoiedges(tess))
@@ -126,7 +126,7 @@ set_default_plot_size(15cm, 15cm)
 plot(x=x, y=y, Geom.path, Scale.x_continuous(minvalue=1.0, maxvalue=2.0), Scale.y_continuous(minvalue=1.0, maxvalue=2.0))
 ```
 
-###From an image
+### From an image
 You can create a tesselation from an image, just like the tesselation of the
 julia logo at the top of this README. This was created from a png with `from_file`
 (see `examples/img_to_vorono.jl`):

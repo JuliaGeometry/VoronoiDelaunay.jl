@@ -1,12 +1,7 @@
 using VoronoiDelaunay
 import VoronoiDelaunay: _pushunfixed!, _flipa!, _flipb!, _flipc!
 import GeometricalPredicates: incircle
-if VERSION >= v"0.5.0-dev+7720"
-    using Base.Test
-else
-    using BaseTestNext
-    const Test = BaseTestNext
-end
+using Base.Test
 
 @testset "VoronoiDelaunay tests" begin
     @testset begin

@@ -18,8 +18,6 @@ findindex, push!,
 Point, Point2D, AbstractPoint2D, getx, gety, geta, getb, getc,
 getgena, getgenb, getplotxy
 
-using Compat
-
 using GeometricalPredicates
 import GeometricalPredicates: geta, getb, getc
 
@@ -691,7 +689,7 @@ function from_image(img, npts)
     for i in 1:npts
         x = rand()
         y = rand()
-        if intensity(img[@compat Int64(floor(x * size(img)[1])) + 1, @compat Int64(floor(y * size(img)[2])) + 1]) > 0.5
+        if intensity(img[Int64(floor(x * size(img)[1])) + 1, Int64(floor(y * size(img)[2])) + 1]) > 0.5
             if rand() < 0.100
                 push!(pts, Point2D(1.0 + rand(), 1.0 + rand()))
             end

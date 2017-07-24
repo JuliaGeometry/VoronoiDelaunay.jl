@@ -199,7 +199,7 @@ function voronoiedges(t::DelaunayTessellation2D)
             const ix_na = tr._neighbour_a
             if !visited[ix_na] #&& !isexternal(t._trigs[ix_na])
                 const nb = t._trigs[ix_na]
-                out!(c, VoronoiEdge(cc, circumcenter(nb), getb(tr), getc(tr)))
+                put!(c, VoronoiEdge(cc, circumcenter(nb), getb(tr), getc(tr)))
             end
             const ix_nb = tr._neighbour_b
             if !visited[ix_nb] #&& !isexternal(t._trigs[ix_nb])

@@ -1,7 +1,8 @@
 using VoronoiDelaunay
 import VoronoiDelaunay: _pushunfixed!, _flipa!, _flipb!, _flipc!
+import GeometricalPredicates
 import GeometricalPredicates: incircle
-using Base.Test
+using Test
 
 @testset "VoronoiDelaunay tests" begin
     @testset begin
@@ -261,8 +262,8 @@ using Base.Test
         point_arr = Point2D[]
         n=10
         tess = DelaunayTessellation2D(n*n*10)
-        for x in linspace(1.001,1.999,n)
-            for y in linspace(1.001,1.999,n)
+        for x in range(1.001,stop=1.999,length=n)
+            for y in range(1.001,stop=1.999,length=n)
                 push!(point_arr, Point2D(x,y))
             end
         end

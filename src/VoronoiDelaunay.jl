@@ -23,6 +23,7 @@ import GeometricalPredicates: geta, getb, getc
 
 import Base: push!, start, done, next, copy, sizehint!
 import Colors: RGB, RGBA
+using Random: shuffle!
 
 const min_coord = GeometricalPredicates.min_coord + eps(Float64)
 const max_coord = GeometricalPredicates.max_coord - eps(Float64)
@@ -91,14 +92,14 @@ mutable struct DelaunayTessellation2D{T<:AbstractPoint2D}
     _total_points_added::Int64
 
     function DelaunayTessellation2D{T}(n::Int64 = 100) where T
-        const a = T(GeometricalPredicates.min_coord, GeometricalPredicates.min_coord)
-        const b = T(GeometricalPredicates.min_coord, GeometricalPredicates.max_coord)
-        const c = T(GeometricalPredicates.max_coord, GeometricalPredicates.min_coord)
-        const d = T(GeometricalPredicates.max_coord, GeometricalPredicates.max_coord)
-        const t1 = DelaunayTriangle{T}(d,c,b, 2,1,1)
-        const t2 = DelaunayTriangle{T}(a,b,c, 3,1,1)
-        const t3 = DelaunayTriangle{T}(d,c,b, 2,1,1)
-        const _trigs = DelaunayTriangle{T}[t1, t2, t3]
+        a = T(GeometricalPredicates.min_coord, GeometricalPredicates.min_coord)
+        b = T(GeometricalPredicates.min_coord, GeometricalPredicates.max_coord)
+        c = T(GeometricalPredicates.max_coord, GeometricalPredicates.min_coord)
+        d = T(GeometricalPredicates.max_coord, GeometricalPredicates.max_coord)
+        t1 = DelaunayTriangle{T}(d,c,b, 2,1,1)
+        t2 = DelaunayTriangle{T}(a,b,c, 3,1,1)
+        t3 = DelaunayTriangle{T}(d,c,b, 2,1,1)
+        _trigs = DelaunayTriangle{T}[t1, t2, t3]
         t = new(_trigs, 3, Int64[], 0)
         sizehint!(t._edges_to_check, 1000)
         sizehint!(t, n)
@@ -109,7 +110,7 @@ DelaunayTessellation2D(n::Int64, ::T) where {T<:AbstractPoint2D} = DelaunayTesse
 DelaunayTessellation(n::Int64=100) = DelaunayTessellation2D(n)
 
 function sizehint!(t::DelaunayTessellation2D{T}, n::Int64) where T<:AbstractPoint2D
-    const required_total_size = 2n + 10
+    required_total_size = 2n + 10
     required_total_size <= length(t._trigs) && return
     sizehint!(t._trigs, required_total_size)
     while length(t._trigs) < required_total_size
@@ -120,7 +121,7 @@ end
 
 # growing strategy
 function sizefit_at_least(t::DelaunayTessellation2D{T}, n::Int64) where T<:AbstractPoint2D
-    const minimal_acceptable_actual_size = 2*n+10
+    minimal_acceptable_actual_size = 2*n+10
     minimal_acceptable_actual_size <= length(t._trigs) && return
     required_total_size = length(t._trigs)
     while required_total_size < minimal_acceptable_actual_size
@@ -163,19 +164,19 @@ function delaunayedges(t::DelaunayTessellation2D)
     visited = zeros(Bool, t._last_trig_index)
     function delaunayiterator(c::Channel)
         @inbounds for ix in 2:t._last_trig_index
-            const tr = t._trigs[ix]
+            tr = t._trigs[ix]
             isexternal(tr) && continue
             visited[ix] && continue
             visited[ix] = true
-            const ix_na = tr._neighbour_a
+            ix_na = tr._neighbour_a
             if !visited[ix_na]
                 put!(c, DelaunayEdge(getb(tr), getc(tr)))
             end
-            const ix_nb = tr._neighbour_b
+            ix_nb = tr._neighbour_b
             if !visited[ix_nb]
                 put!(c, DelaunayEdge(geta(tr), getc(tr)))
             end
-            const ix_nc = tr._neighbour_c
+            ix_nc = tr._neighbour_c
             if !visited[ix_nc]
                 put!(c, DelaunayEdge(geta(tr), getb(tr)))
             end
@@ -191,24 +192,24 @@ function voronoiedges(t::DelaunayTessellation2D)
     function voronoiiterator(c::Channel)
         for ix in 2:t._last_trig_index
             visited[ix] && continue
-            const tr = t._trigs[ix]
+            tr = t._trigs[ix]
             visited[ix] = true
             #isexternal(tr) && continue
-            const cc = circumcenter(tr)
+            cc = circumcenter(tr)
 
-            const ix_na = tr._neighbour_a
+            ix_na = tr._neighbour_a
             if !visited[ix_na] #&& !isexternal(t._trigs[ix_na])
-                const nb = t._trigs[ix_na]
+                nb = t._trigs[ix_na]
                 put!(c, VoronoiEdge(cc, circumcenter(nb), getb(tr), getc(tr)))
             end
-            const ix_nb = tr._neighbour_b
+            ix_nb = tr._neighbour_b
             if !visited[ix_nb] #&& !isexternal(t._trigs[ix_nb])
-                const nb = t._trigs[ix_nb]
+                nb = t._trigs[ix_nb]
                 put!(c, VoronoiEdge(cc, circumcenter(nb), geta(tr), getc(tr)))
             end
-            const ix_nc = tr._neighbour_c
+            ix_nc = tr._neighbour_c
             if !visited[ix_nc] #&& !isexternal(t._trigs[ix_nb])
-                const nb = t._trigs[ix_nc]
+                nb = t._trigs[ix_nc]
                 put!(c, VoronoiEdge(cc, circumcenter(nb), geta(tr), getb(tr)))
             end
         end
@@ -222,24 +223,24 @@ function voronoiedgeswithoutgenerators(t::DelaunayTessellation2D)
     function voronoiiterator(c::Channel)
         for ix in 2:t._last_trig_index
             visited[ix] && continue
-            const tr = t._trigs[ix]
+            tr = t._trigs[ix]
             visited[ix] = true
             #isexternal(tr) && continue
-            const cc = circumcenter(tr)
+            cc = circumcenter(tr)
 
-            const ix_na = tr._neighbour_a
+            ix_na = tr._neighbour_a
             if !visited[ix_na] #&& !isexternal(t._trigs[ix_na])
-                const nb = t._trigs[ix_na]
+                nb = t._trigs[ix_na]
                 put!(c, VoronoiEdgeWithoutGenerators(cc, circumcenter(nb)))
             end
-            const ix_nb = tr._neighbour_b
+            ix_nb = tr._neighbour_b
             if !visited[ix_nb] #&& !isexternal(t._trigs[ix_nb])
-                const nb = t._trigs[ix_nb]
+                nb = t._trigs[ix_nb]
                 put!(c, VoronoiEdgeWithoutGenerators(cc, circumcenter(nb)))
             end
-            const ix_nc = tr._neighbour_c
+            ix_nc = tr._neighbour_c
             if !visited[ix_nc] #&& !isexternal(t._trigs[ix_nc])
-                const nb = t._trigs[ix_nc]
+                nb = t._trigs[ix_nc]
                 put!(c, VoronoiEdgeWithoutGenerators(cc, circumcenter(nb)))
             end
         end
@@ -259,7 +260,7 @@ function done(t::DelaunayTessellation2D, it::TrigIter)
     it.ix > t._last_trig_index
 end
 function next(t::DelaunayTessellation2D, it::TrigIter)
-    @inbounds const trig = t._trigs[it.ix]
+    @inbounds trig = t._trigs[it.ix]
     it.ix += 1
     (trig, it)
 end
@@ -267,9 +268,9 @@ end
 function findindex(tess::DelaunayTessellation2D{T}, p::T) where T<:AbstractPoint2D
     i::Int64 = tess._last_trig_index
     while true
-        @inbounds const w = intriangle(tess._trigs[i], p)
+        @inbounds w = intriangle(tess._trigs[i], p)
         w > 0 && return i
-        @inbounds const tr = tess._trigs[i]
+        @inbounds tr = tess._trigs[i]
         if w == -1
             i = tr._neighbour_a
         elseif w == -2
@@ -291,10 +292,10 @@ movec(tess::DelaunayTessellation2D{T},
 
 function _pushunfixed!(tess::DelaunayTessellation2D{T}, p::T) where T<:AbstractPoint2D
     i = findindex(tess, p)
-    const ltrigs1::Int64 = tess._last_trig_index+1
-    const ltrigs2::Int64 = tess._last_trig_index+2
+    ltrigs1::Int64 = tess._last_trig_index+1
+    ltrigs2::Int64 = tess._last_trig_index+2
 
-    @inbounds const t1 = tess._trigs[i]
+    @inbounds t1 = tess._trigs[i]
     old_t1_a = geta(t1)
     seta(t1, p)
     old_t1_b = t1._neighbour_b
@@ -302,19 +303,19 @@ function _pushunfixed!(tess::DelaunayTessellation2D{T}, p::T) where T<:AbstractP
     t1._neighbour_b = ltrigs1
     t1._neighbour_c = ltrigs2
 
-    @inbounds const t2 = tess._trigs[ltrigs1]
+    @inbounds t2 = tess._trigs[ltrigs1]
     setabc(t2, old_t1_a, p, getc(t1))
     t2._neighbour_a = i
     t2._neighbour_b = old_t1_b
     t2._neighbour_c = ltrigs2
 
-    @inbounds const t3 = tess._trigs[ltrigs2]
+    @inbounds t3 = tess._trigs[ltrigs2]
     setabc(t3, old_t1_a, getb(t1), p)
     t3._neighbour_a = i
     t3._neighbour_b = ltrigs1
     t3._neighbour_c = old_t1_c
 
-    @inbounds const nt2 = tess._trigs[t2._neighbour_b]
+    @inbounds nt2 = tess._trigs[t2._neighbour_b]
     if nt2._neighbour_a==i
         nt2._neighbour_a = ltrigs1
     elseif nt2._neighbour_b==i
@@ -323,7 +324,7 @@ function _pushunfixed!(tess::DelaunayTessellation2D{T}, p::T) where T<:AbstractP
         nt2._neighbour_c = ltrigs1
     end
 
-    @inbounds const nt3 = tess._trigs[t3._neighbour_c]
+    @inbounds nt3 = tess._trigs[t3._neighbour_c]
     if nt3._neighbour_a==i
         nt3._neighbour_a = ltrigs2
     elseif nt3._neighbour_b==i
@@ -338,8 +339,8 @@ function _pushunfixed!(tess::DelaunayTessellation2D{T}, p::T) where T<:AbstractP
 end
 
 function _flipa!(tess::DelaunayTessellation2D, ix1::Int64, ix2::Int64)
-    @inbounds const ot1 = tess._trigs[ix1]
-    @inbounds const ot2 = tess._trigs[ix2]
+    @inbounds ot1 = tess._trigs[ix1]
+    @inbounds ot2 = tess._trigs[ix2]
     if ot2._neighbour_a == ix1
         _flipaa!(tess, ix1, ix2, ot1, ot2)
     elseif ot2._neighbour_b == ix1
@@ -352,7 +353,7 @@ end
 function _endflipa!(tess::DelaunayTessellation2D,
                     ix1::Int64, ix2::Int64,
                     ot1::DelaunayTriangle, ot2::DelaunayTriangle)
-    @inbounds const n1 = tess._trigs[ot1._neighbour_a]
+    @inbounds n1 = tess._trigs[ot1._neighbour_a]
     if n1._neighbour_a==ix2
         n1._neighbour_a = ix1
     elseif n1._neighbour_b==ix2
@@ -360,7 +361,7 @@ function _endflipa!(tess::DelaunayTessellation2D,
     else
         n1._neighbour_c = ix1
     end
-    @inbounds const n2 = tess._trigs[ot2._neighbour_c]
+    @inbounds n2 = tess._trigs[ot2._neighbour_c]
     if n2._neighbour_a==ix1
         n2._neighbour_a = ix2
     elseif n2._neighbour_b==ix1
@@ -426,8 +427,8 @@ end
 
 function _flipb!(tess::DelaunayTessellation2D{T},
                  ix1::Int64, ix2::Int64) where T<:AbstractPoint2D
-    @inbounds const ot1 = tess._trigs[ix1]
-    @inbounds const ot2 = tess._trigs[ix2]
+    @inbounds ot1 = tess._trigs[ix1]
+    @inbounds ot2 = tess._trigs[ix2]
     if ot2._neighbour_a == ix1
         _flipba!(tess, ix1, ix2, ot1, ot2)
     elseif ot2._neighbour_b == ix1
@@ -440,7 +441,7 @@ end
 function _endflipb!(tess::DelaunayTessellation2D{T},
                     ix1::Int64, ix2::Int64,
                     ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T}) where T<:AbstractPoint2D
-    @inbounds const n1 = tess._trigs[ot1._neighbour_b]
+    @inbounds n1 = tess._trigs[ot1._neighbour_b]
     if n1._neighbour_a==ix2
         n1._neighbour_a = ix1
     elseif n1._neighbour_b==ix2
@@ -448,7 +449,7 @@ function _endflipb!(tess::DelaunayTessellation2D{T},
     else
         n1._neighbour_c = ix1
     end
-    @inbounds const n2 = tess._trigs[ot2._neighbour_a]
+    @inbounds n2 = tess._trigs[ot2._neighbour_a]
     if n2._neighbour_a==ix1
         n2._neighbour_a = ix2
     elseif n2._neighbour_b==ix1
@@ -514,8 +515,8 @@ end
 
 function _flipc!(tess::DelaunayTessellation2D{T},
                  ix1::Int64, ix2::Int64) where T<:AbstractPoint2D
-    @inbounds const ot1 = tess._trigs[ix1]
-    @inbounds const ot2 = tess._trigs[ix2]
+    @inbounds ot1 = tess._trigs[ix1]
+    @inbounds ot2 = tess._trigs[ix2]
     if ot2._neighbour_a == ix1
         _flipca!(tess, ix1, ix2, ot1, ot2)
     elseif ot2._neighbour_b == ix1
@@ -528,7 +529,7 @@ end
 function _endflipc!(tess::DelaunayTessellation2D{T},
                     ix1::Int64, ix2::Int64,
                     ot1::DelaunayTriangle{T}, ot2::DelaunayTriangle{T}) where T<:AbstractPoint2D
-    @inbounds const n1 = tess._trigs[ot1._neighbour_c]
+    @inbounds n1 = tess._trigs[ot1._neighbour_c]
     if n1._neighbour_a==ix2
         n1._neighbour_a = ix1
     elseif n1._neighbour_b==ix2
@@ -536,7 +537,7 @@ function _endflipc!(tess::DelaunayTessellation2D{T},
     else
         n1._neighbour_c = ix1
     end
-    @inbounds const n2 = tess._trigs[ot2._neighbour_b]
+    @inbounds n2 = tess._trigs[ot2._neighbour_b]
     if n2._neighbour_a==ix1
         n2._neighbour_a = ix2
     elseif n2._neighbour_b==ix1
@@ -600,16 +601,16 @@ end
 
 function _restoredelaunayhood!(tess::DelaunayTessellation2D{T},
                                ix_trig::Int64) where T<:AbstractPoint2D
-    @inbounds const center_pt = geta(tess._trigs[ix_trig])
+    @inbounds center_pt = geta(tess._trigs[ix_trig])
 
     # `A` - edge
     push!(tess._edges_to_check, ix_trig)
     while length(tess._edges_to_check) > 0
-        @inbounds const trix = tess._edges_to_check[end]
-        @inbounds const tr_i = tess._trigs[trix]
-        @inbounds const nb_a = tr_i._neighbour_a
+        @inbounds trix = tess._edges_to_check[end]
+        @inbounds tr_i = tess._trigs[trix]
+        @inbounds nb_a = tr_i._neighbour_a
         if nb_a > 1
-            @inbounds const tr_f = tess._trigs[nb_a]
+            @inbounds tr_f = tess._trigs[nb_a]
             if incircle(tr_f, center_pt) > 0
                 _flipa!(tess, trix, nb_a)
                 push!(tess._edges_to_check, nb_a)
@@ -622,11 +623,11 @@ function _restoredelaunayhood!(tess::DelaunayTessellation2D{T},
     # `B` - edge
     push!(tess._edges_to_check, tess._last_trig_index-1)
     while length(tess._edges_to_check) > 0
-        @inbounds const trix = tess._edges_to_check[end]
-        @inbounds const tr_i = tess._trigs[trix]
-        @inbounds const nb_b = tr_i._neighbour_b
+        @inbounds trix = tess._edges_to_check[end]
+        @inbounds tr_i = tess._trigs[trix]
+        @inbounds nb_b = tr_i._neighbour_b
         if nb_b > 1
-            @inbounds const tr_f = tess._trigs[nb_b]
+            @inbounds tr_f = tess._trigs[nb_b]
             if incircle(tr_f, center_pt) > 0
                 _flipb!(tess, trix, nb_b)
                 push!(tess._edges_to_check, nb_b)
@@ -639,11 +640,11 @@ function _restoredelaunayhood!(tess::DelaunayTessellation2D{T},
     # `C` - edge
     push!(tess._edges_to_check, tess._last_trig_index)
     while length(tess._edges_to_check) > 0
-        @inbounds const trix = tess._edges_to_check[end]
-        @inbounds const tr_i = tess._trigs[trix]
-        @inbounds const nb_c = tr_i._neighbour_c
+        @inbounds trix = tess._edges_to_check[end]
+        @inbounds tr_i = tess._trigs[trix]
+        @inbounds nb_c = tr_i._neighbour_c
         if nb_c > 1
-            @inbounds const tr_f = tess._trigs[nb_c]
+            @inbounds tr_f = tess._trigs[nb_c]
             if incircle(tr_f, center_pt) > 0
                 _flipc!(tess, trix, nb_c)
                 push!(tess._edges_to_check, nb_c)
@@ -658,7 +659,7 @@ end
 function push!(tess::DelaunayTessellation2D{T}, p::T) where T<:AbstractPoint2D
     tess._total_points_added += 1
     sizefit_at_least(tess, tess._total_points_added)
-    const i = _pushunfixed!(tess, p)
+    i = _pushunfixed!(tess, p)
     _restoredelaunayhood!(tess, i)
 end
 

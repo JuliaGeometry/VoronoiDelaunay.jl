@@ -9,12 +9,17 @@ julia:
     - 1.0
     - nightly
 
-matrix:
-    allow_failures:
-        - julia: nightly
+# matrix:
+#     allow_failures:
+#         - julia: nightly
 
 notifications:
     email: false
     
+script:
+  - julia -e 'import Pkg; Pkg.build(); Pkg.test(; coverage=true)'
 after_success:
-    - julia -e 'import Pkg; cd(Pkg.dir("VoronoiDelaunay")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+  # push coverage results to Coveralls
+  - julia -e 'import Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+  # push coverage results to Codecov
+  - julia -e 'import Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'

@@ -13,14 +13,14 @@ export
 DelaunayTessellation, DelaunayTessellation2D, sizehint!, isexternal,
 min_coord, max_coord, locate, movea, moveb, movec,
 delaunayedges, voronoiedges, voronoiedgeswithoutgenerators,
-iterator, findindex, push!,
+iterate, findindex, push!,
 Point, Point2D, AbstractPoint2D, getx, gety, geta, getb, getc,
 getgena, getgenb, getplotxy
 
 using GeometricalPredicates
 import GeometricalPredicates: geta, getb, getc
 
-import Base: push!, iterator, copy, sizehint!
+import Base: push!, iterate, copy, sizehint!
 import Colors: RGB, RGBA
 using Random: shuffle!
 

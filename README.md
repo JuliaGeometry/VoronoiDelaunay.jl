@@ -26,6 +26,10 @@ How to use?
 --------------
 ### Installation
 ```Julia
+]add VoronoiDelaunay
+```
+For Julia 0.6 and below, type
+```Julia
 Pkg.add("VoronoiDelaunay")
 ```
 

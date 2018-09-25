@@ -281,4 +281,19 @@ using Test
         end
     end
 end
+
+@testset "Iterator test" begin
+    point_arr = Point2D[]
+    n=1000
+    tess = DelaunayTessellation2D(n*10)
+    for i in 1:n
+        push!(point_arr, Point2D(rand()+1.0, rand()+1.0))
+    end
+    push!(tess, point_arr)
+    counter = 0
+    for t in tess
+        counter += 1
+    end
+    @test counter == length(tess._trigs)
+end
 # that's it for today!

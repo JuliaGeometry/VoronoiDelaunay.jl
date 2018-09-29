@@ -251,18 +251,7 @@ end
 mutable struct TrigIter
     ix::Int64
 end
-# start(t::DelaunayTessellation2D) = TrigIter(2)
-# function done(t::DelaunayTessellation2D, it::TrigIter)
-#     while isexternal(t._trigs[it.ix]) && it.ix <= t._last_trig_index
-#         it.ix += 1
-#     end
-#     it.ix > t._last_trig_index
-# end
-# function next(t::DelaunayTessellation2D, it::TrigIter)
-#     @inbounds trig = t._trigs[it.ix]
-#     it.ix += 1
-#     (trig, it)
-# end
+
 function iterate(t::DelaunayTessellation2D, it::TrigIter=TrigIter(2)) # default it resembles old start
     # resembles old done
     while isexternal(t._trigs[it.ix]) && it.ix <= t._last_trig_index

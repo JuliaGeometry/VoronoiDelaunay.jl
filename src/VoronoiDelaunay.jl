@@ -13,15 +13,14 @@ export
 DelaunayTessellation, DelaunayTessellation2D, sizehint!, isexternal,
 min_coord, max_coord, locate, movea, moveb, movec,
 delaunayedges, voronoiedges, voronoiedgeswithoutgenerators,
-start, next, done,
-findindex, push!,
+iterate, findindex, push!,
 Point, Point2D, AbstractPoint2D, getx, gety, geta, getb, getc,
 getgena, getgenb, getplotxy
 
 using GeometricalPredicates
 import GeometricalPredicates: geta, getb, getc
 
-import Base: push!, start, done, next, copy, sizehint!
+import Base: push!, iterate, copy, sizehint!
 import Colors: RGB, RGBA
 using Random: shuffle!
 
@@ -252,17 +251,19 @@ end
 mutable struct TrigIter
     ix::Int64
 end
-start(t::DelaunayTessellation2D) = TrigIter(2)
-function done(t::DelaunayTessellation2D, it::TrigIter)
+
+function iterate(t::DelaunayTessellation2D, it::TrigIter=TrigIter(2)) # default it resembles old start
+    # resembles old done
     while isexternal(t._trigs[it.ix]) && it.ix <= t._last_trig_index
         it.ix += 1
     end
-    it.ix > t._last_trig_index
-end
-function next(t::DelaunayTessellation2D, it::TrigIter)
+    if it.ix > t._last_trig_index
+        return nothing
+    end
+    # resembles old next
     @inbounds trig = t._trigs[it.ix]
     it.ix += 1
-    (trig, it)
+    return (trig, it)
 end
 
 function findindex(tess::DelaunayTessellation2D{T}, p::T) where T<:AbstractPoint2D

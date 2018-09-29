@@ -1,7 +1,7 @@
 using VoronoiDelaunay
 import VoronoiDelaunay: _pushunfixed!, _flipa!, _flipb!, _flipc!
 import GeometricalPredicates
-import GeometricalPredicates: incircle
+import GeometricalPredicates: incircle, intriangle
 using Test
 
 @testset "VoronoiDelaunay tests" begin
@@ -280,5 +280,25 @@ using Test
             end
         end
     end
+    
+    # Iterator test
+    @testset begin
+    point_arr = Point2D[]
+    n=1000
+    tess = DelaunayTessellation2D(n*10)
+    for i in 1:n
+        push!(point_arr, Point2D(rand()+1.0, rand()+1.0))
+    end
+    push!(tess, point_arr)
+    p = Point2D(rand()+1.0, rand()+1.0)
+    counter = 0
+    for t in tess
+        if intriangle(t, p) == 1
+            counter += 1
+        end
+    end
+    @test counter == 1 # p can be contained only in one triangle
+end
+
 end
 # that's it for today!

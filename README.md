@@ -36,7 +36,7 @@ Pkg.add("VoronoiDelaunay")
 ### Building a tessellation
 Define and push individual points like this:
 ```Julia
-using  VoronoiDelaunay
+using VoronoiDelaunay
 tess = DelaunayTessellation()
 push!(tess, Point(1.5, 1.5))
 ```
@@ -80,7 +80,7 @@ a `VoronoiEdge` is a bit different than a `DelaunayEdge`: here `a` and `b` are `
 If the generators are not needed when iterating over the Voronoi edges (e.g. when plotting) then a more efficient way to iterate is:
 ```Julia
 i = 0
-e=Nothing
+e = Nothing
 for edge in voronoiedgeswithoutgenerators(tess)
     i += 1
     # do something more useful here :)

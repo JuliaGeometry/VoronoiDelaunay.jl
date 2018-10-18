@@ -17,4 +17,4 @@ notifications:
     email: false
     
 after_success:
-    - julia -e 'import Pkg; cd(Pkg.dir("VoronoiDelaunay")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder()); Codecov.submit(Codecov.process_folder())'
+    - julia -e 'import Pkg; cd(Pkg.dir("VoronoiDelaunay")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder()); Coveralls.submit(Coveralls.process_folder())';

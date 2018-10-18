@@ -45,7 +45,7 @@ creation of points is explained in the [GeometricalPredicates](https://github.co
 Pushing arrays of points is more efficient:
 ```Julia
 width = max_coord - min_coord
-a= Point2D[Point(min_coord+rand()*width, min_coord+rand()*width) for i in 1:100]
+a = Point2D[Point(min_coord + rand() * width, min_coord + rand() * width) for i in 1:100]
 push!(tess, a)
 ```
 notice care taken for correct range of coordinates. `min_coord` and `max_coord` are defined in the package. We can further optimize by giving a `sizehint` at time of construction:
@@ -66,7 +66,7 @@ for edge in delaunayedges(tess)
     # or, do something more useful :)
 end
 ```
-a `DelaunayEdge` contains two points a and b, they can be accesse with `geta(edge)` and `getb(edge)`.
+a `DelaunayEdge` contains two points a and b, they can be accessed with `geta(edge)` and `getb(edge)`.
 Iterating over Voronoi edges is similar:
 ```Julia
 i = 0
@@ -96,7 +96,7 @@ for delaunaytriangle in tess
     # or, do something more useful :)
 end
 ```
-`delaunaytriangle` here is of type `DelaunayTriagle` which is s subtype of `AbstractNegativelyOrientedTriangle`. To get the generators of this triangle use the `geta`, `getb`, and `getc` methods. You can do all other operations and predicate tests on this triangle as explained in [GeometricalPredicates](https://github.com/skariel/GeometricalPredicates.jl)
+`delaunaytriangle` here is of type `DelaunayTriangle` which is a subtype of `AbstractNegativelyOrientedTriangle`. To get the generators of this triangle use the `geta`, `getb`, and `getc` methods. You can do all other operations and predicate tests on this triangle as explained in [GeometricalPredicates](https://github.com/skariel/GeometricalPredicates.jl)
 
 ### Navigating
 Locating a point, i.e. finding the triangle it is inside:

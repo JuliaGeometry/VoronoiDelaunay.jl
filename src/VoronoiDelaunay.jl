@@ -10,12 +10,36 @@ module VoronoiDelaunay
 # Bug reports welcome!
 
 export
-DelaunayTessellation, DelaunayTessellation2D, sizehint!, isexternal,
-min_coord, max_coord, locate, movea, moveb, movec,
-delaunayedges, voronoiedges, voronoiedgeswithoutgenerators,
-iterate, findindex, push!,
-Point, Point2D, AbstractPoint2D, getx, gety, geta, getb, getc,
-getgena, getgenb, getplotxy
+DelaunayTessellation, 
+DelaunayTessellation2D, 
+sizehint!, 
+isexternal,
+min_coord, 
+max_coord, 
+locate, 
+movea, 
+moveb, 
+movec,
+delaunayedges, 
+voronoiedges, 
+voronoiedgeswithoutgenerators,
+iterate, 
+findindex, 
+push!,
+Point, 
+Point2D, 
+AbstractPoint2D, 
+getx, 
+gety, 
+geta, 
+getb, 
+getc,
+getgena, 
+getgenb, 
+getplotxy,
+scaleShiftPoints,
+expand,
+quickHull
 
 using GeometricalPredicates
 import GeometricalPredicates: geta, getb, getc
@@ -23,6 +47,8 @@ import GeometricalPredicates: geta, getb, getc
 import Base: push!, iterate, copy, sizehint!
 import Colors: RGB, RGBA
 using Random: shuffle!
+
+include("VoronoiDelaunayExtensions.jl")
 
 const min_coord = GeometricalPredicates.min_coord + eps(Float64)
 const max_coord = GeometricalPredicates.max_coord - eps(Float64)

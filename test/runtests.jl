@@ -311,18 +311,9 @@ using Test
                     Point2D(-1.5811584920674324, 1.0346409888830976)  
                     Point2D(1.2185165319349451, 1.4177209167374605)   
                     Point2D(-1.5991536318191626, -1.3063986775765466) ];
-        tess = DelaunayTessellation( points )
-        Triangles = delaunayTriangles(tess._trigs)
-        Points = Vertices(tess)
-        t = locate(tess,Point2D(0.6, 0.6))
-        @test t in Triangles
-        set1 = Set( [ Point2D( round(getx(geta(t)),digits=5), round(gety(geta(t)),digits=5) ), 
-                      Point2D( round(getx(getb(t)),digits=5), round(gety(getb(t)),digits=5) ),
-                      Point2D( round(getx(getc(t)),digits=5), round(gety(getc(t)),digits=5) ) ] )
-        set2 = Set( [ Point2D( round(points[9]._x,digits=5), round(points[9]._y,digits=5) ), 
-                      Point2D( round(points[5]._x,digits=5), round(points[5]._y,digits=5) ),
-                      Point2D( round(points[3]._x,digits=5), round(points[3]._y,digits=5) ) ] )
-        @test issetequal( set1, set2 )
+        tess, ranges = DelaunayTessellation( points )
+        t = locate( tess, Point2D(0.6, 0.6) )
+        @test !isexternal( t, ranges )
     end
 
 end

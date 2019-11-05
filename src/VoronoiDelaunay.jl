@@ -199,9 +199,9 @@ function expand( tess::DelaunayTessellation2D{T}, ranges::NTuple{4,Float64} ) wh
     scaledTess._trigs[i]._by   = tess._trigs[i]._by  * scale
     scaledTess._trigs[i]._cx   = tess._trigs[i]._cx  * scale
     scaledTess._trigs[i]._cy   = tess._trigs[i]._cy  * scale
-    scaledTess._trigs[i]._px   = tess._trigs[i]._px  * scale
-    scaledTess._trigs[i]._py   = tess._trigs[i]._py  * scale
-    scaledTess._trigs[i]._pr2  = tess._trigs[i]._pr2 * scale
+    scaledTess._trigs[i]._px   = tess._trigs[i]._px  * scale ^ 3
+    scaledTess._trigs[i]._py   = tess._trigs[i]._py  * scale ^ 3
+    scaledTess._trigs[i]._pr2  = tess._trigs[i]._pr2 * scale ^ 2
   end
   return scaledTess
 end

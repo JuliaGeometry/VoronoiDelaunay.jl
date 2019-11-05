@@ -19,16 +19,11 @@ end
 # convert the edge points back to original scale after the tessellation
 
 function expand( points::Array{Point2D,1}, ranges::NTuple{4,Float64} )
-  scaledPoints = deepcopy(points)
   xmin = ranges[1]
   ymin = ranges[3]
   scale = max( ranges[4] - ranges[3], ranges[2] - ranges[1] ) / 0.98
   offset = 1.01
-  for i in 1:length(scaledPoints)
-    scaledPoints[i]._x = ( points[i]._x - offset ) * scale + xmin
-    scaledPoints[i]._y = ( points[i]._y - offset ) * scale + ymin
-  end
-  return scaledPoints
+  scaledPoints = [ Point2D( ( p._x - offset ) * scale + xmin, ( p._y - offset ) * scale + ymin ) for p in points ]
 end
 
 
@@ -161,14 +156,9 @@ end
 
 
 function shrink( points::Array{Point2D,1}, ranges::NTuple{4,Float64} )
-  scaledPoints = deepcopy(points)
   h = ranges[4] - ranges[3]
   b = ranges[2] - ranges[1]
   offset = 1.01
   scale = 0.98 / max( h, b )
-  for i in 1:length(points)
-    scaledPoints[i]._x = ( points[i]._x - ranges[1] ) * scale + offset
-    scaledPoints[i]._y = ( points[i]._y - ranges[3] ) * scale + offset
-  end
-  return scaledPoints
+  scaledPoints = [ Point2D( ( p._x - ranges[1] ) * scale + offset, ( p._y - ranges[3] ) * scale + offset ) for p in points ]
 end

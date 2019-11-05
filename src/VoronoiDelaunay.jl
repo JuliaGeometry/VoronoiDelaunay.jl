@@ -183,27 +183,23 @@ end
 
 # convert the tessellation back to original scale after the tessellation
 function expand( tess::DelaunayTessellation2D{T}, ranges::NTuple{4,Float64} ) where T<:AbstractPoint2D
-  scaledTess = deepcopy(tess)
   xmin = ranges[1]
   ymin = ranges[3]
   scale = max( ranges[4] - ranges[3], ranges[2] - ranges[1] ) / 0.98
-  offset = 1.01  
+  offset = 1.01
   for i in 1:length(tess._trigs)
-    scaledTess._trigs[i]._a._x = ( tess._trigs[i]._a._x - offset ) * scale + xmin
-    scaledTess._trigs[i]._a._y = ( tess._trigs[i]._a._y - offset ) * scale + ymin
-    scaledTess._trigs[i]._b._x = ( tess._trigs[i]._b._x - offset ) * scale + xmin
-    scaledTess._trigs[i]._b._y = ( tess._trigs[i]._b._y - offset ) * scale + ymin
-    scaledTess._trigs[i]._c._x = ( tess._trigs[i]._c._x - offset ) * scale + xmin
-    scaledTess._trigs[i]._c._y = ( tess._trigs[i]._c._y - offset ) * scale + ymin
-    scaledTess._trigs[i]._bx   = tess._trigs[i]._bx  * scale
-    scaledTess._trigs[i]._by   = tess._trigs[i]._by  * scale
-    scaledTess._trigs[i]._cx   = tess._trigs[i]._cx  * scale
-    scaledTess._trigs[i]._cy   = tess._trigs[i]._cy  * scale
-    scaledTess._trigs[i]._px   = tess._trigs[i]._px  * scale ^ 3
-    scaledTess._trigs[i]._py   = tess._trigs[i]._py  * scale ^ 3
-    scaledTess._trigs[i]._pr2  = tess._trigs[i]._pr2 * scale ^ 2
+    tess._trigs[i]._a = Point2D( ( tess._trigs[i]._a._x - offset ) * scale + xmin, ( tess._trigs[i]._a._y - offset ) * scale + ymin )
+    tess._trigs[i]._b = Point2D( ( tess._trigs[i]._b._x - offset ) * scale + xmin, ( tess._trigs[i]._b._y - offset ) * scale + ymin )
+    tess._trigs[i]._c = Point2D( ( tess._trigs[i]._c._x - offset ) * scale + xmin, ( tess._trigs[i]._c._y - offset ) * scale + ymin )
+    tess._trigs[i]._bx   = tess._trigs[i]._bx  * scale
+    tess._trigs[i]._by   = tess._trigs[i]._by  * scale
+    tess._trigs[i]._cx   = tess._trigs[i]._cx  * scale
+    tess._trigs[i]._cy   = tess._trigs[i]._cy  * scale
+    tess._trigs[i]._px   = tess._trigs[i]._px  * scale ^ 3
+    tess._trigs[i]._py   = tess._trigs[i]._py  * scale ^ 3
+    tess._trigs[i]._pr2  = tess._trigs[i]._pr2 * scale ^ 2
   end
-  return scaledTess
+  return tess
 end
 
 struct DelaunayEdge{T<:AbstractPoint2D}

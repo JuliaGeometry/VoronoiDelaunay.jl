@@ -12,13 +12,8 @@ points = [
  Point2D(1.2185165319349451, 1.4177209167374605)   
  Point2D(-1.5991536318191626, -1.3063986775765466) ];
 
-# tessellation and its triangles, edges  and points
-tess = DelaunayTessellation( points )
-Triangles = delaunayTriangles(tess._trigs)
-Edges = delaunayEdges(Triangles)
-Points = Vertices(tess) #tess._workpoints[1:end];
-xyEdges = getplotxy(Edges,Points)
-# plot
-l1 = layer( x=getx.(Points), y=gety.(Points), Theme(default_color=colorant"orange"), Geom.point )
-l2 = layer( x=xyEdges[1], y=xyEdges[2], Geom.path )
+tess, ranges = DelaunayTessellation( points )
+xy = getplotxy( delaunayedges( tess, ranges ) )
+l1 = layer( x=getx.(points), y=gety.(points), Theme(default_color=colorant"orange"), Geom.point )
+l2 = layer( x=xy[1], y=xy[2], Geom.path )
 plot( l1, l2, Coord.cartesian(fixed=true) )

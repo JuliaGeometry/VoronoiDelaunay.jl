@@ -144,7 +144,7 @@ function DelaunayTessellation( points::Array{Point2D,1} )
   scaledTess = DelaunayTessellation( length( points ) )
   push!( scaledTess, scaledPoints )  
   tess = expand( scaledTess, ranges )
-  return tess
+  return tess, ranges
 end
 # in order to reduce computation, if you are interested in the edges only, you can also 
 # apply the expand function to the points of the edges directly. 
@@ -325,9 +325,9 @@ mutable struct TrigIter
     ix::Int64
 end
 
-function iterate(t::DelaunayTessellation2D, it::TrigIter=TrigIter(2)) # default it resembles old start
+function iterate( t::DelaunayTessellation2D, it::TrigIter=TrigIter(2), ranges::NTuple{4,Float64}=(min_coord,max_coord,min_coord,max_coord) ) # default it resembles old start
     # resembles old done
-    while isexternal(t._trigs[it.ix]) && it.ix <= t._last_trig_index
+    while isexternal(t._trigs[it.ix], ranges) && it.ix <= t._last_trig_index
         it.ix += 1
     end
     if it.ix > t._last_trig_index

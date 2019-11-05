@@ -283,21 +283,22 @@ using Test
     
     # Iterator test
     @testset begin
-    point_arr = Point2D[]
-    n=1000
-    tess = DelaunayTessellation2D(n*10)
-    for i in 1:n
-        push!(point_arr, Point2D(rand()+1.0, rand()+1.0))
-    end
-    push!(tess, point_arr)
-    p = Point2D(rand()+1.0, rand()+1.0)
-    counter = 0
-    for t in tess
-        if intriangle(t, p) == 1
-            counter += 1
+        point_arr = Point2D[]
+        n=1000
+        tess = DelaunayTessellation2D(n*10)
+        for i in 1:n
+            push!(point_arr, Point2D(rand()+1.0, rand()+1.0))
         end
+        push!(tess, point_arr)
+        p = Point2D(rand()+1.0, rand()+1.0)
+        counter = 0
+        for t in tess
+            if intriangle(t, p) == 1
+                counter += 1
+            end
+        end
+        @test counter == 1 # p can be contained only in one triangle
     end
-    @test counter == 1 # p can be contained only in one triangle
 
     @testset begin
         points = [  Point2D(-1.0563841812533212, -1.4606363138997696) 
@@ -323,7 +324,6 @@ using Test
                       Point2D( round(points[3]._x,digits=5), round(points[3]._y,digits=5) ) ] )
         @test issetequal( set1, set2 )
     end
-end
 
 end
 # that's it for today!

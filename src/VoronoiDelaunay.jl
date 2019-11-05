@@ -39,7 +39,10 @@ getgenb,
 getplotxy,
 scaleShiftPoints,
 expand,
-quickHull
+Triple,
+DelaunayTriangle
+
+
 
 using GeometricalPredicates
 import GeometricalPredicates: geta, getb, getc
@@ -141,7 +144,7 @@ function DelaunayTessellation( points::Array{Point2D,1} )
   scaledTess = DelaunayTessellation( length( points ) )
   push!( scaledTess, scaledPoints )  
   tess = expand( scaledTess, ranges )
-  return tess, ranges
+  return tess
 end
 # in order to reduce computation, if you are interested in the edges only, you can also 
 # apply the expand function to the points of the edges directly. 
@@ -150,6 +153,8 @@ end
 # 2. do the tessellation and push the scaled and shifted point set
 # 3. get the edges with the delaunayedges function and
 # 4. expand the end points of the edges with the expand function 
+
+
 
 function sizehint!(t::DelaunayTessellation2D{T}, n::Int64) where T<:AbstractPoint2D
     required_total_size = 2n + 10

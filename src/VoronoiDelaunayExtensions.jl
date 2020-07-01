@@ -1,8 +1,8 @@
 # scale the point set down such that the union of all circumcircles lies within the square frame.
 # this does not only allow for arbitrary point distributions, but more importantly
-# ensures convexity (and correctness) of the resulting Delaunay triangulation. 
+# ensures convexity (and correctness) of the resulting Delaunay triangulation.
 
-function scaleShiftPoints( points::Array{Point2D,1} )
+function scaleShiftPoints( points::Array{T,1} ) where T<:AbstractPoint2D
   # convex hull of point set to find the outer edges
   hull = quickHull( points )
   # union of the outer circumcircles
@@ -26,11 +26,23 @@ function expand( points::Array{Point2D,1}, ranges::NTuple{4,Float64} )
   scaledPoints = [ Point2D( ( p._x - offset ) * scale + xmin, ( p._y - offset ) * scale + ymin ) for p in points ]
 end
 
+function shrink( points::Array{Point2D,1}, ranges::NTuple{4,Float64} )
+  h = ranges[4] - ranges[3]
+  b = ranges[2] - ranges[1]
+  offset = 1.01
+  scale = 0.98 / max( h, b )
+  scaledPoints = [ Point2D( ( p._x - ranges[1] ) * scale + offset, ( p._y - ranges[3] ) * scale + offset ) for p in points ]
+end
+
 
 
 #=== auxiliary functions and structs ===#
 
 # convex hull of point set
+
+function quickHull(points::Array{T,1}) where T<:AbstractPoint2D
+    return quickHull(Point2D.(points))
+end
 
 function quickHull( points::Array{Point2D,1} )
   ConvexHull = Array{Point2D,1}(undef,0)
@@ -46,7 +58,7 @@ function quickHull( points::Array{Point2D,1} )
   return ConvexHull
 end
 
-function findHull!( ConvexHull::Array{Point2D,1}, points::Array{Point2D,1}, A::Point2D, B::Point2D )
+function findHull!( ConvexHull::Array{T,1}, points::Array{T,1}, A::T, B::T ) where T<:AbstractPoint2D
   if isempty( points )
     return
   end
@@ -59,9 +71,9 @@ function findHull!( ConvexHull::Array{Point2D,1}, points::Array{Point2D,1}, A::P
   findHull!( ConvexHull, pCB, C, B )
 end
 
-function dividePointSet( l::Line2D, points::Array{Point2D,1} )
-  pr = Array{Point2D,1}(undef,0)
-  pl = Array{Point2D,1}(undef,0)
+function dividePointSet( l::Line2D, points::Array{T,1} ) where T <: AbstractPoint2D
+  pr = Array{T,1}(undef,0)
+  pl = Array{T,1}(undef,0)
   for i in 1:length(points)
     if orientation(l,points[i]) == -1
       push!(pr,points[i])
@@ -72,7 +84,7 @@ function dividePointSet( l::Line2D, points::Array{Point2D,1} )
   return (pl, pr)
 end
 
-function findFarthestPoint(a::Point2D,b::Point2D,points::Array{Point2D,1})
+function findFarthestPoint(a::T,b::T,points::Array{T,1}) where T<:AbstractPoint2D
   distances = Array{Float64,1}(undef,size(points,1))
   for i in 1:length(distances)
     distances[i] = pointLineDistance(a,b,points[i])
@@ -80,19 +92,33 @@ function findFarthestPoint(a::Point2D,b::Point2D,points::Array{Point2D,1})
   return points[argmax(distances)]
 end
 
-function pointLineDistance(a::Point2D,b::Point2D,c::Point2D)
-  abs( (b._y-a._y)*c._x - (b._x-a._x)*c._y + b._x*a._y - b._y*a._x ) / sqrt( (b._y-a._y)^2 + (b._x-a._x)^2 )
+function pointLineDistance(a::T,b::T,c::T) where T<:AbstractPoint2D
+  return abs( (gety(b)-gety(a))*getx(c) - (getx(b)-getx(a))*gety(c) + getx(b)*gety(a) - gety(b)*getx(a) ) / sqrt( (gety(b)-gety(a))^2 + (getx(b)-getx(a))^2 )
 end
 
 
 
-mutable struct Circle
-  c::Point2D
+mutable struct Circle{T<:AbstractPoint2D}
+  c::T
   r::Float64
 end
 
-function circumcircleUnion( hull::Array{Point2D,1}, points::Array{Point2D,1} )
-  ccU = Array{Circle,1}(undef,length(hull))
+function getcen(circ::Circle{T}) where T<:AbstractPoint2D
+    return circ.c
+end
+
+function getcenx(circ::Circle{T}) where T<:AbstractPoint2D
+    return getx( getcen( circ ) )
+end
+function getceny(circ::Circle{T}) where T<:AbstractPoint2D
+    return gety( getcen( circ ) )
+end
+function getrad(circ::Circle{T}) where T<: AbstractPoint2D
+    return circ.r
+end
+
+function circumcircleUnion( hull::Array{T,1}, points::Array{S,1} ) where {T<:AbstractPoint2D,S<:AbstractPoint2D}
+  ccU = Array{Circle{Point2D},1}(undef,length(hull))
   hullcirc = copy(hull)
   push!( hullcirc, hull[1] )
   for i in 1:length( hull )
@@ -101,7 +127,7 @@ function circumcircleUnion( hull::Array{Point2D,1}, points::Array{Point2D,1} )
     for j in 1:length(points)
       if pointsDistance( points[j], cc2.c ) < cc2.r
         cc3 = circumcircle( hullcirc[i], hullcirc[i+1], points[j] )
-        if cc3.r > ccU[i].r
+        if getrad(cc3) > getrad(ccU[i])
           ccU[i] = cc3
         end
       end
@@ -110,55 +136,41 @@ function circumcircleUnion( hull::Array{Point2D,1}, points::Array{Point2D,1} )
   return ccU
 end
 
-function pointsDistance( p1::Point2D, p2::Point2D )
-  sqrt( ( p1._x - p2._x ) ^ 2 + ( p1._y - p2._y ) ^ 2 )
+function pointsDistance( p1::T, p2::S ) where {T<:AbstractPoint2D, S<:AbstractPoint2D}
+  sqrt( ( getx(p1) - getx(p2) ) ^ 2 + ( gety(p1) - gety(p2) ) ^ 2 )
 end
 
-function circumcircle( a::Point2D, b::Point2D )
-  px = (a._x + b._x) / 2.0
-  py = (a._y + b._y) / 2.0
-  dx = (b._x - a._x) / 2.0
-  dy = (b._y - a._y) / 2.0
+function circumcircle( a::T, b::S ) where {T<:AbstractPoint2D, S<:AbstractPoint2D}
+  px = (getx(a) + getx(b)) / 2.0
+  py = (gety(a) + gety(b)) / 2.0
+  dx = (getx(b) - getx(a)) / 2.0
+  dy = (gety(b) - gety(a)) / 2.0
   r = sqrt( dx^2 + dy^2 )
-  return Circle( Point2D(px,py), r )
+  return Circle{Point2D}( Point2D(px,py), r )
 end
 
-function circumcircle( a::Point2D, b::Point2D, c::Point2D )
-  la = a._x^2 + a._y^2
-  lb = b._x^2 + b._y^2
-  lc = c._x^2 + c._y^2
-  xyy = a._x * (b._y - c._y)
-  yxx = a._y * (b._x - c._x)
-  xy = b._x * c._y
-  yx = b._y * c._x
+function circumcircle( a::T, b::S, c::U ) where {T<:AbstractPoint2D,S<:AbstractPoint2D, U<:AbstractPoint2D}
+  la = getx(a)^2 + gety(a)^2
+  lb = getx(b)^2 + gety(b)^2
+  lc = getx(c)^2 + gety(c)^2
+  xyy = getx(a) * (gety(b) - gety(c))
+  yxx = gety(a) * (getx(b) - getx(c))
+  xy = getx(b) * gety(c)
+  yx = gety(b) * getx(c)
   z = 2 * ( xyy - yxx + xy - yx )
-  px = ( la*(b._y-c._y) + lb*(c._y-a._y) + lc*(a._y-b._y) ) / z
-  py = ( la*(c._x-b._x) + lb*(a._x-c._x) + lc*(b._x-a._x) ) / z
-  r = sqrt( (px-a._x)^2 + (py-a._y)^2 )
-  return Circle( Point2D(px,py), r )
+  px = ( la*(gety(b)-gety(c)) + lb*(gety(c)-gety(a)) + lc*(gety(a)-gety(b)) ) / z
+  py = ( la*(getx(c)-getx(b)) + lb*(getx(a)-getx(c)) + lc*(getx(b)-getx(a)) ) / z
+  r = sqrt( (px-getx(a))^2 + (py-gety(a))^2 )
+  return Circle{Point2D}( Point2D(px,py), r )
 end
 
-getcen(circ::Circle)  = circ.c
-getcenx(circ::Circle) = getx( getcen( circ ) )
-getceny(circ::Circle) = gety( getcen( circ ) )
-getrad(circ::Circle)  = circ.r
 
 
 
-function frameRanges( ccU::Array{Circle,1} )
+function frameRanges( ccU::Array{Circle{T},1} ) where T<:AbstractPoint2D
   xmin = minimum( getcenx.(ccU) .- getrad.(ccU) )
   xmax = maximum( getcenx.(ccU) .+ getrad.(ccU) )
   ymin = minimum( getceny.(ccU) .- getrad.(ccU) )
-  ymax = maximum( getceny.(ccU) .+ getrad.(ccU) )  
+  ymax = maximum( getceny.(ccU) .+ getrad.(ccU) )
   return xmin, xmax, ymin, ymax
-end
-    
-
-
-function shrink( points::Array{Point2D,1}, ranges::NTuple{4,Float64} )
-  h = ranges[4] - ranges[3]
-  b = ranges[2] - ranges[1]
-  offset = 1.01
-  scale = 0.98 / max( h, b )
-  scaledPoints = [ Point2D( ( p._x - ranges[1] ) * scale + offset, ( p._y - ranges[3] ) * scale + offset ) for p in points ]
 end

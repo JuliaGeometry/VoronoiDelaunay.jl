@@ -132,7 +132,8 @@ mutable struct DelaunayTessellation2D{T<:AbstractPoint2D}
         t = new(_trigs, 3, Int64[], 0)
         sizehint!(t._edges_to_check, 1000)
         sizehint!(t, n)
-        ranges=(min_coord,max_coord,min_coord,max_coord)
+        _ranges=(min_coord,max_coord,min_coord,max_coord)
+        t = new(_trigs, 3, Int64[], 0, _ranges)
         return t
     end
 end

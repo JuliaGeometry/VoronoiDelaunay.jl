@@ -311,9 +311,9 @@ using Test
                     Point2D(-1.5811584920674324, 1.0346409888830976)  
                     Point2D(1.2185165319349451, 1.4177209167374605)   
                     Point2D(-1.5991536318191626, -1.3063986775765466) ];
-        tess, ranges = DelaunayTessellation( points )
+        tess = DelaunayTessellation( points )
         t = locate( tess, Point2D(0.6, 0.6) )
-        @test !isexternal( t, ranges )
+        @test !isexternal( t, tess._ranges )
     end
 
 end

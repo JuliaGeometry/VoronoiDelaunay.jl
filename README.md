@@ -27,11 +27,6 @@ How to use?
 ```Julia
 ]add VoronoiDelaunay
 ```
-For Julia 0.6 and below, type
-```Julia
-Pkg.add("VoronoiDelaunay")
-```
-
 ### Building a tessellation
 Define and push individual points like this:
 ```Julia

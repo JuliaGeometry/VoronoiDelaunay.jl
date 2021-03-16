@@ -283,22 +283,38 @@ using Test
     
     # Iterator test
     @testset begin
-    point_arr = Point2D[]
-    n=1000
-    tess = DelaunayTessellation2D(n*10)
-    for i in 1:n
-        push!(point_arr, Point2D(rand()+1.0, rand()+1.0))
-    end
-    push!(tess, point_arr)
-    p = Point2D(rand()+1.0, rand()+1.0)
-    counter = 0
-    for t in tess
-        if intriangle(t, p) == 1
-            counter += 1
+        point_arr = Point2D[]
+        n=1000
+        tess = DelaunayTessellation2D(n*10)
+        for i in 1:n
+            push!(point_arr, Point2D(rand()+1.0, rand()+1.0))
         end
+        push!(tess, point_arr)
+        p = Point2D(rand()+1.0, rand()+1.0)
+        counter = 0
+        for t in tess
+            if intriangle(t, p) == 1
+                counter += 1
+            end
+        end
+        @test counter == 1 # p can be contained only in one triangle
     end
-    @test counter == 1 # p can be contained only in one triangle
-end
+
+    @testset begin
+        points = [  Point2D(-1.0563841812533212, -1.4606363138997696) 
+                    Point2D(0.06312982975128989, -0.48031801152366027)
+                    Point2D(0.1624918689993189, -0.19919450833195906) 
+                    Point2D(-1.5293344878962758, -0.7657808444340142) 
+                    Point2D(0.5319064220493406, 0.6107808132476504)   
+                    Point2D(-0.3670342825169435, 0.8207427582546951)  
+                    Point2D(-1.9797019290444364, -0.5066353099040788) 
+                    Point2D(-1.5811584920674324, 1.0346409888830976)  
+                    Point2D(1.2185165319349451, 1.4177209167374605)   
+                    Point2D(-1.5991536318191626, -1.3063986775765466) ];
+        tess = DelaunayTessellation( points )
+        t = locate( tess, Point2D(0.6, 0.6) )
+        @test !isexternal( t, tess._ranges )
+    end
 
 end
 # that's it for today!

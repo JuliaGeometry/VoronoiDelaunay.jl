@@ -10,12 +10,39 @@ module VoronoiDelaunay
 # Bug reports welcome!
 
 export
-DelaunayTessellation, DelaunayTessellation2D, sizehint!, isexternal,
-min_coord, max_coord, locate, movea, moveb, movec,
-delaunayedges, voronoiedges, voronoiedgeswithoutgenerators,
-iterate, findindex, push!,
-Point, Point2D, AbstractPoint2D, getx, gety, geta, getb, getc,
-getgena, getgenb, getplotxy
+DelaunayTessellation,
+DelaunayTessellation2D,
+sizehint!,
+isexternal,
+min_coord,
+max_coord,
+locate,
+movea,
+moveb,
+movec,
+delaunayedges,
+voronoiedges,
+voronoiedgeswithoutgenerators,
+iterate,
+findindex,
+push!,
+Point,
+Point2D,
+AbstractPoint2D,
+getx,
+gety,
+geta,
+getb,
+getc,
+getgena,
+getgenb,
+getplotxy,
+scaleShiftPoints,
+expand,
+Triple,
+DelaunayTriangle
+
+
 
 using GeometricalPredicates
 import GeometricalPredicates: geta, getb, getc
@@ -23,6 +50,8 @@ import GeometricalPredicates: geta, getb, getc
 import Base: push!, iterate, copy, sizehint!
 import Colors: RGB, RGBA
 using Random: shuffle!
+
+include("VoronoiDelaunayExtensions.jl")
 
 const min_coord = GeometricalPredicates.min_coord + eps(Float64)
 const max_coord = GeometricalPredicates.max_coord - eps(Float64)
@@ -78,10 +107,10 @@ function copy(t::DelaunayTriangle{T}) where T<:AbstractPoint2D
                      )
 end
 
-function isexternal(t::DelaunayTriangle{T}) where T<:AbstractPoint2D
-    getx(geta(t)) < min_coord || getx(geta(t)) > max_coord ||
-    getx(getb(t)) < min_coord || getx(getb(t)) > max_coord ||
-    getx(getc(t)) < min_coord || getx(getc(t)) > max_coord
+function isexternal( t::DelaunayTriangle{T}, ranges::NTuple{4,Float64} ) where T<:AbstractPoint2D
+    getx(geta(t)) < ranges[1] || getx(geta(t)) > ranges[2] ||
+    getx(getb(t)) < ranges[1] || getx(getb(t)) > ranges[2] ||
+    getx(getc(t)) < ranges[1] || getx(getc(t)) > ranges[2]
 end
 
 mutable struct DelaunayTessellation2D{T<:AbstractPoint2D}
@@ -89,6 +118,7 @@ mutable struct DelaunayTessellation2D{T<:AbstractPoint2D}
     _last_trig_index::Int64
     _edges_to_check::Vector{Int64}
     _total_points_added::Int64
+    _ranges::NTuple{4,Float64}
 
     function DelaunayTessellation2D{T}(n::Int64 = 100) where T
         a = T(GeometricalPredicates.min_coord, GeometricalPredicates.min_coord)
@@ -102,11 +132,33 @@ mutable struct DelaunayTessellation2D{T<:AbstractPoint2D}
         t = new(_trigs, 3, Int64[], 0)
         sizehint!(t._edges_to_check, 1000)
         sizehint!(t, n)
+        _ranges=(min_coord,max_coord,min_coord,max_coord)
+        t = new(_trigs, 3, Int64[], 0, _ranges)
+        return t
     end
 end
 DelaunayTessellation2D(n::Int64) = DelaunayTessellation2D{Point2D}(n)
 DelaunayTessellation2D(n::Int64, ::T) where {T<:AbstractPoint2D} = DelaunayTessellation2D{T}(n)
 DelaunayTessellation(n::Int64=100) = DelaunayTessellation2D(n)
+
+# tessellation function that can deal with points outside [1,2]x[1,2]
+# and that always returns a convex tessellation
+function DelaunayTessellation( points::Array{T,1} ) where T<:AbstractPoint2D
+  scaledPoints, ranges = scaleShiftPoints( points )
+  scaledTess = DelaunayTessellation2D{T}(length( points ))
+  push!( scaledTess, scaledPoints )
+  tess = expand( scaledTess, ranges )
+  return tess
+end
+# in order to reduce computation, if you are interested in the edges only, you can also
+# apply the expand function to the points of the edges directly.
+# if this is what you want, you can (see VoronoiDelaunayExtensions.jl)
+# 1. apply scaleShiftPoints to your point set
+# 2. do the tessellation and push the scaled and shifted point set
+# 3. get the edges with the delaunayedges function and
+# 4. expand the end points of the edges with the expand function
+
+
 
 function sizehint!(t::DelaunayTessellation2D{T}, n::Int64) where T<:AbstractPoint2D
     required_total_size = 2n + 10
@@ -131,6 +183,31 @@ function sizefit_at_least(t::DelaunayTessellation2D{T}, n::Int64) where T<:Abstr
         push!(t._trigs, copy(t._trigs[end]))
     end
     t
+end
+
+# convert the tessellation back to original scale after the tessellation
+function expand( tess::DelaunayTessellation2D{T},ranges) where T<:AbstractPoint2D
+  xmin = ranges[1]
+  ymin = ranges[3]
+  scale = max( ranges[4] - ranges[3], ranges[2] - ranges[1] ) / 0.98
+  offset = 1.01
+  for i in 1:length(tess._trigs)
+    #tess._trigs[i]._a = Point2D( ( tess._trigs[i]._a._x - offset ) * scale + xmin, ( tess._trigs[i]._a._y - offset ) * scale + ymin )
+    tess._trigs[i]._a = expand([tess._trigs[i]._a],ranges)[1]
+    tess._trigs[i]._b = expand([tess._trigs[i]._b],ranges)[1]
+    tess._trigs[i]._c = expand([tess._trigs[i]._c],ranges)[1]
+    #tess._trigs[i]._b = Point2D( ( tess._trigs[i]._b._x - offset ) * scale + xmin, ( tess._trigs[i]._b._y - offset ) * scale + ymin )
+    #tess._trigs[i]._c = Point2D( ( tess._trigs[i]._c._x - offset ) * scale + xmin, ( tess._trigs[i]._c._y - offset ) * scale + ymin )
+    tess._trigs[i]._bx   = tess._trigs[i]._bx  * scale
+    tess._trigs[i]._by   = tess._trigs[i]._by  * scale
+    tess._trigs[i]._cx   = tess._trigs[i]._cx  * scale
+    tess._trigs[i]._cy   = tess._trigs[i]._cy  * scale
+    tess._trigs[i]._px   = tess._trigs[i]._px  * scale ^ 3
+    tess._trigs[i]._py   = tess._trigs[i]._py  * scale ^ 3
+    tess._trigs[i]._pr2  = tess._trigs[i]._pr2 * scale ^ 2
+  end
+  tess._ranges = ranges
+  return tess
 end
 
 struct DelaunayEdge{T<:AbstractPoint2D}
@@ -159,12 +236,13 @@ geta(e::VoronoiEdgeWithoutGenerators) = e._a
 getb(e::VoronoiEdgeWithoutGenerators) = e._b
 
 # TODO: is an iterator faster?
-function delaunayedges(t::DelaunayTessellation2D)
+function delaunayedges( t::DelaunayTessellation2D)
+    ranges = t._ranges
     visited = zeros(Bool, t._last_trig_index)
     function delaunayiterator(c::Channel)
         @inbounds for ix in 2:t._last_trig_index
             tr = t._trigs[ix]
-            isexternal(tr) && continue
+            isexternal( tr, ranges ) && continue
             visited[ix] && continue
             visited[ix] = true
             ix_na = tr._neighbour_a
@@ -252,9 +330,10 @@ mutable struct TrigIter
     ix::Int64
 end
 
-function iterate(t::DelaunayTessellation2D, it::TrigIter=TrigIter(2)) # default it resembles old start
+function iterate( t::DelaunayTessellation2D, it::TrigIter=TrigIter(2) ) # default it resembles old start
+    ranges = t._ranges
     # resembles old done
-    while isexternal(t._trigs[it.ix]) && it.ix <= t._last_trig_index
+    while isexternal(t._trigs[it.ix], ranges) && it.ix <= t._last_trig_index
         it.ix += 1
     end
     if it.ix > t._last_trig_index
@@ -268,7 +347,10 @@ end
 
 function findindex(tess::DelaunayTessellation2D{T}, p::T) where T<:AbstractPoint2D
     i::Int64 = tess._last_trig_index
+    counter::Int64 = 0
+    ntriangles = length(tess._trigs)
     while true
+        counter += 1
         @inbounds w = intriangle(tess._trigs[i], p)
         w > 0 && return i
         @inbounds tr = tess._trigs[i]
@@ -278,6 +360,9 @@ function findindex(tess::DelaunayTessellation2D{T}, p::T) where T<:AbstractPoint
             i = tr._neighbour_b
         else
             i = tr._neighbour_c
+        end
+        if counter > ntriangles
+            throw(DomainError("Point was not found in any triangle"))
         end
     end
 end

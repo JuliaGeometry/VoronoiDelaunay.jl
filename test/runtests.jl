@@ -2,6 +2,7 @@ using VoronoiDelaunay
 import VoronoiDelaunay: _pushunfixed!, _flipa!, _flipb!, _flipc!
 import GeometricalPredicates
 import GeometricalPredicates: incircle, intriangle
+using Random
 using Test
 
 @testset "VoronoiDelaunay tests" begin
@@ -283,22 +284,48 @@ using Test
     
     # Iterator test
     @testset begin
-    point_arr = Point2D[]
-    n=1000
-    tess = DelaunayTessellation2D(n*10)
-    for i in 1:n
-        push!(point_arr, Point2D(rand()+1.0, rand()+1.0))
-    end
-    push!(tess, point_arr)
-    p = Point2D(rand()+1.0, rand()+1.0)
-    counter = 0
-    for t in tess
-        if intriangle(t, p) == 1
-            counter += 1
+        point_arr = Point2D[]
+        n=1000
+        tess = DelaunayTessellation2D(n*10)
+        for i in 1:n
+            push!(point_arr, Point2D(rand()+1.0, rand()+1.0))
         end
-    end
-    @test counter == 1 # p can be contained only in one triangle
-end
+        push!(tess, point_arr)
+        p = Point2D(rand()+1.0, rand()+1.0)
+        counter = 0
+        for t in tess
+            if intriangle(t, p) == 1
+                counter += 1
+            end
+        end
+        @test counter == 1 # p can be contained only in one triangle
+    end 
 
+    @testset "Iterate voronoi and delaunay edges" begin
+        Random.seed!(1337)
+        n = 100
+        tess = DelaunayTessellation(n)
+        width = max_coord - min_coord
+        a = Point2D[Point(min_coord + rand() * width, min_coord + rand() * width) for i in 1:n]
+        push!(tess, a)
+
+        i = 0
+        for edge in voronoiedges(tess)
+            i += 1
+        end
+        @test i == 301
+
+        i = 0
+        for edge in voronoiedgeswithoutgenerators(tess)
+            i += 1
+        end
+        @test i == 301
+
+        i = 0
+        for edge in delaunayedges(tess)
+            i += 1
+        end
+        @test i == 273
+    end 
 end
 # that's it for today!

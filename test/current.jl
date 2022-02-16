@@ -11,17 +11,18 @@ function create_tess(n)
     return tess
 end
 
-function iterate_over_tess_channel(tess)
+function iterate_over_tess_iterator(tess)
     i = 0
     for edge in voronoiedges(tess)
         i += 1
     end
+    @show i
 end
 
-
-function iterate_over_tess_iterator(tess)
+function iterate_over_tess_wogenerator(tess)
     i = 0
-    for edge in voronoiedges_iterator(tess)
+    for edge in voronoiedgeswithoutgenerators(tess)
         i += 1
     end
+    @show i
 end

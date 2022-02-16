@@ -303,17 +303,18 @@ using Test
     end 
 
     @testset "Iterate voronoi and delaunay edges" begin
-        Random.seed!(1337)
-        n = 100
-        tess = DelaunayTessellation(n)
+        tess = DelaunayTessellation(5)
         width = max_coord - min_coord
-        a = Point2D[Point(min_coord + rand() * width, min_coord + rand() * width) for i in 1:n]
-        push!(tess, a)
+        push!(tess, Point(1.5, 1.5))
+        push!(tess, Point(1.25, 1.25))
+        push!(tess, Point(1.25, 1.75))
+        push!(tess, Point(1.75, 1.25))
+        push!(tess, Point(1.75, 1.75))
 
         num_voronoi_edges = length(collect(voronoiedges(tess)))
-        @test num_voronoi_edges == 301
+        @test num_voronoi_edges == 16
         num_delaunay_edges = length(collect(delaunayedges(tess)))
-        @test num_delaunay_edges == 273
+        @test num_delaunay_edges == 8
 
         i = 0
         for edge in voronoiedges(tess)

@@ -284,6 +284,7 @@ using Test
     
     # Iterator test
     @testset begin
+        Random.seed!(1337)
         point_arr = Point2D[]
         n=1000
         tess = DelaunayTessellation2D(n*10)
@@ -309,23 +310,28 @@ using Test
         a = Point2D[Point(min_coord + rand() * width, min_coord + rand() * width) for i in 1:n]
         push!(tess, a)
 
+        num_voronoi_edges = length(collect(voronoiedges(tess)))
+        @test num_voronoi_edges == 301
+        num_delaunay_edges = length(collect(delaunayedges(tess)))
+        @test num_delaunay_edges == 273
+
         i = 0
         for edge in voronoiedges(tess)
             i += 1
         end
-        @test i == 301
+        @test i == num_voronoi_edges
 
         i = 0
         for edge in voronoiedgeswithoutgenerators(tess)
             i += 1
         end
-        @test i == 301
+        @test i == num_voronoi_edges
 
         i = 0
         for edge in delaunayedges(tess)
             i += 1
         end
-        @test i == 273
+        @test i == num_delaunay_edges
     end 
 end
 # that's it for today!

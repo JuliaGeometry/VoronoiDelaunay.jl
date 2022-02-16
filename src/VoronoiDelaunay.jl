@@ -12,7 +12,7 @@ module VoronoiDelaunay
 export
 DelaunayTessellation, DelaunayTessellation2D, sizehint!, isexternal,
 min_coord, max_coord, locate, movea, moveb, movec,
-delaunayedges, voronoiedges, voronoiedgeswithoutgenerators,
+delaunayedges, voronoiedges, voronoiedgeswithoutgenerators, voronoiedges_iterator
 iterate, findindex, push!,
 Point, Point2D, AbstractPoint2D, getx, gety, geta, getb, getc,
 getgena, getgenb, getplotxy
@@ -214,6 +214,42 @@ function voronoiedges(t::DelaunayTessellation2D)
         end
     end
     Channel(voronoiiterator)
+end
+
+struct VoronoiEdgeIterator{T <: DelaunayTessellation2D}
+    t::T
+end
+Base.IteratorSize(::VoronoiEdgeIterator) = Base.SizeUnknown()
+Base.eltype(::VoronoiEdgeIterator{<:DelaunayTessellation2D{T}}) where T = VoronoiEdge{T}
+function iterate(v::VoronoiEdgeIterator, state=(2, 1))
+    ix, tx = state
+    t = v.t
+    while ix <= t._last_trig_index
+        tr = t._trigs[ix]
+        cc = circumcenter(tr)
+
+        ix_na = tr._neighbour_a
+        if tx <= 1 && ix_na > ix
+            nb = t._trigs[ix_na]
+            return (VoronoiEdge(cc, circumcenter(nb), getb(tr), getc(tr)), (ix, 2))
+        end
+        ix_nb = tr._neighbour_b
+        if tx <= 2 && ix_nb > ix
+            nb = t._trigs[ix_nb]
+            return (VoronoiEdge(cc, circumcenter(nb), geta(tr), getc(tr)), (ix, 3))
+        end
+        ix_nc = tr._neighbour_c
+        if tx <= 3 && ix_nc > ix
+            nb = t._trigs[ix_nc]
+            return (VoronoiEdge(cc, circumcenter(nb), geta(tr), getb(tr)), (ix+1, 1))
+        end
+        tx = 1
+        ix += 1
+    end
+    nothing
+end
+function voronoiedges_iterator(t::DelaunayTessellation2D)
+    VoronoiEdgeIterator(t)
 end
 
 function voronoiedgeswithoutgenerators(t::DelaunayTessellation2D)

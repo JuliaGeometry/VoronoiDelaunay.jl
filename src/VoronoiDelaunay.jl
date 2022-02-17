@@ -78,10 +78,15 @@ function copy(t::DelaunayTriangle{T}) where T<:AbstractPoint2D
                      )
 end
 
-function isexternal(t::DelaunayTriangle{T}) where T<:AbstractPoint2D
-    getx(geta(t)) < min_coord || getx(geta(t)) > max_coord ||
-    getx(getb(t)) < min_coord || getx(getb(t)) > max_coord ||
-    getx(getc(t)) < min_coord || getx(getc(t)) > max_coord
+function isexternal(t::DelaunayTriangle)
+    isexternal(geta(t)) || isexternal(getb(t)) || isexternal(getc(t))
+end
+function isexternal(p::AbstractPoint2D)
+    # TODO: verify if checking only getx(p) is sufficient?
+    isexternal(getx(p)) || isexternal(gety(p))
+end
+function isexternal(z::Real)
+    z < min_coord || z > max_coord
 end
 
 mutable struct DelaunayTessellation2D{T<:AbstractPoint2D}
@@ -158,31 +163,50 @@ end
 geta(e::VoronoiEdgeWithoutGenerators) = e._a
 getb(e::VoronoiEdgeWithoutGenerators) = e._b
 
-# TODO: is an iterator faster?
-function delaunayedges(t::DelaunayTessellation2D)
-    visited = zeros(Bool, t._last_trig_index)
-    function delaunayiterator(c::Channel)
-        @inbounds for ix in 2:t._last_trig_index
-            tr = t._trigs[ix]
-            isexternal(tr) && continue
-            visited[ix] && continue
-            visited[ix] = true
-            ix_na = tr._neighbour_a
-            if !visited[ix_na]
-                put!(c, DelaunayEdge(getb(tr), getc(tr)))
+struct DelaunayEdgeIterator{T <: DelaunayTessellation2D}
+    t::T
+end
+
+Base.IteratorSize(::DelaunayEdgeIterator) = Base.SizeUnknown()
+Base.eltype(::DelaunayEdgeIterator{DelaunayTessellation2D{T}}) where T = DelaunayEdge{T}
+
+function iterate(v::DelaunayEdgeIterator, state=(2, 1))
+    ix, tx = state
+    t = v.t
+    while ix <= t._last_trig_index
+        tr = t._trigs[ix]
+        if isexternal(tr)
+            ix += 1
+            tx = 1
+            continue
+        end
+        if tx == 1
+            ix_new = tr._neighbour_a
+            if ix_new > ix || isexternal(t._trigs[ix_new])
+                return DelaunayEdge(getb(tr), getc(tr)), (ix, 2)
             end
-            ix_nb = tr._neighbour_b
-            if !visited[ix_nb]
-                put!(c, DelaunayEdge(geta(tr), getc(tr)))
+        elseif tx == 2
+            ix_new = tr._neighbour_b
+            if ix_new > ix || isexternal(t._trigs[ix_new])
+                return DelaunayEdge(geta(tr), getc(tr)), (ix, 3)
             end
-            ix_nc = tr._neighbour_c
-            if !visited[ix_nc]
-                put!(c, DelaunayEdge(geta(tr), getb(tr)))
+        else # tx == 3
+            ix_new = tr._neighbour_c
+            if ix_new > ix || isexternal(t._trigs[ix_new])
+                return DelaunayEdge(geta(tr), getb(tr)), (ix+1, 1)
             end
         end
+        if tx < 3
+            tx += 1
+        else
+            ix += 1
+            tx = 1
+        end
     end
-    Channel(delaunayiterator)
+    return nothing
 end
+
+delaunayedges(t::DelaunayTessellation2D) = DelaunayEdgeIterator(t)
 
 struct VoronoiEdgeIterator{T <: DelaunayTessellation2D}
     t::T
@@ -197,7 +221,7 @@ function iterate(v::VoronoiEdgeIterator, state=(2, 1))
         cc = circumcenter(tr)
 
         ix_na = tr._neighbour_a
-        if tx <= 1 && ix_na > ix
+        if tx == 1 && ix_na > ix
             nb = t._trigs[ix_na]
             return (VoronoiEdge(cc, circumcenter(nb), getb(tr), getc(tr)), (ix, 2))
         end
@@ -216,10 +240,7 @@ function iterate(v::VoronoiEdgeIterator, state=(2, 1))
     end
     nothing
 end
-function voronoiedges(t::DelaunayTessellation2D)
-    VoronoiEdgeIterator(t)
-end
-
+voronoiedges(t::DelaunayTessellation2D) = VoronoiEdgeIterator(t)
 
 struct VoronoiEdgeIteratorWithoutGenerator{T <: DelaunayTessellation2D}
     t::T
@@ -258,26 +279,20 @@ function voronoiedgeswithoutgenerators(t::DelaunayTessellation2D)
 end
 
 
-mutable struct TrigIter
-    ix::Int64
-end
-
-function iterate(t::DelaunayTessellation2D, it::TrigIter=TrigIter(2)) # default it resembles old start
-    # resembles old done
-    while isexternal(t._trigs[it.ix]) && it.ix <= t._last_trig_index
-        it.ix += 1
+function iterate(t::DelaunayTessellation2D, ix::Int=2)
+    while ix <= t._last_trig_index && isexternal(@inbounds t._trigs[ix])
+        ix += 1
     end
-    if it.ix > t._last_trig_index
+    if ix > t._last_trig_index
         return nothing
     end
-    # resembles old next
-    @inbounds trig = t._trigs[it.ix]
-    it.ix += 1
-    return (trig, it)
+    trig = t._trigs[ix]
+    ix += 1
+    return (trig, ix)
 end
 
 function findindex(tess::DelaunayTessellation2D{T}, p::T) where T<:AbstractPoint2D
-    i::Int64 = tess._last_trig_index
+    i = tess._last_trig_index
     while true
         @inbounds w = intriangle(tess._trigs[i], p)
         w > 0 && return i

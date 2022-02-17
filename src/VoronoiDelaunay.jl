@@ -78,10 +78,15 @@ function copy(t::DelaunayTriangle{T}) where T<:AbstractPoint2D
                      )
 end
 
-function isexternal(t::DelaunayTriangle{T}) where T<:AbstractPoint2D
-    getx(geta(t)) < min_coord || getx(geta(t)) > max_coord ||
-    getx(getb(t)) < min_coord || getx(getb(t)) > max_coord ||
-    getx(getc(t)) < min_coord || getx(getc(t)) > max_coord
+function isexternal(t::DelaunayTriangle)
+    isexternal(geta(t)) || isexternal(getb(t)) || isexternal(getc(t))
+end
+function isexternal(p::AbstractPoint2D)
+    # TODO: verify if checking only getx(p) is sufficient?
+    isexternal(getx(p)) || isexternal(gety(p))
+end
+function isexternal(z::Real)
+    z < min_coord || z > max_coord
 end
 
 mutable struct DelaunayTessellation2D{T<:AbstractPoint2D}

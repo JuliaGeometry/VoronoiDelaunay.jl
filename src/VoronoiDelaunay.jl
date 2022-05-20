@@ -278,17 +278,22 @@ function voronoiedgeswithoutgenerators(t::DelaunayTessellation2D)
     VoronoiEdgeIteratorWithoutGenerator(t)
 end
 
+# TODO: for v0.5, remove TrigIter
+mutable struct TrigIter
+    ix::Int64
+end
 
-function iterate(t::DelaunayTessellation2D, ix::Int=2)
-    while ix <= t._last_trig_index && isexternal(@inbounds t._trigs[ix])
-        ix += 1
+# TODO: for v0.5, replace it by ix::Int
+function iterate(t::DelaunayTessellation2D, it::TrigIter=TrigIter(2))
+    while it.ix <= t._last_trig_index && isexternal(@inbounds t._trigs[it.ix])
+        it.ix += 1
     end
-    if ix > t._last_trig_index
+    if it.ix > t._last_trig_index
         return nothing
     end
-    trig = t._trigs[ix]
-    ix += 1
-    return (trig, ix)
+    trig = t._trigs[it.ix]
+    it.ix += 1
+    return (trig, it)
 end
 
 function findindex(tess::DelaunayTessellation2D{T}, p::T) where T<:AbstractPoint2D

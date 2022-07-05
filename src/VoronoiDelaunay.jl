@@ -711,7 +711,7 @@ end
 
 intensity(c::RGB)  = c.b
 intensity(c::RGBA) = c.b
-intensity(c) 	   = getfield(c, 1) # Workaround. Gray needs to be imported from images, which would take to long.
+intensity(c)       = getfield(c, 1) # Workaround. Gray needs to be imported from images, which would take to long.
 
 # Create DelaunayTessellation with npts points from an image
 function from_image(img, npts)

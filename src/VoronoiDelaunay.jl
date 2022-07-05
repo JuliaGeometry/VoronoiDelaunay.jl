@@ -38,8 +38,8 @@ mutable struct DelaunayTriangle{T<:AbstractPoint2D} <: AbstractNegativelyOriente
     _neighbour_c::Int64
 
     function DelaunayTriangle{T}(pa::T, pb::T, pc::T,
-                                 na::Int, nb::Int, nc::Int) where T
-        t = new(pa, pb, pc, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Int64(na), Int64(nb), Int64(nc))
+                                 na::Int64, nb::Int64, nc::Int64) where T
+        t = new(pa, pb, pc, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, na, nb, nc)
         clean!(t)
         t
     end
@@ -50,21 +50,21 @@ mutable struct DelaunayTriangle{T<:AbstractPoint2D} <: AbstractNegativelyOriente
                                  cx::Float64, cy::Float64,
                                  px::Float64, py::Float64,
                                  pr2::Float64,
-                                 na::Int, nb::Int, nc::Int) where T
-        new(pa, pb, pc, bx, by, cx, cy, px, py, pr2, Int64(na), Int64(nb), Int64(nc))
+                                 na::Int64, nb::Int64, nc::Int64) where T
+        new(pa, pb, pc, bx, by, cx, cy, px, py, pr2, na, nb, nc)
     end
 end
 function DelaunayTriangle(pa::T, pb::T, pc::T,
-                          na::Int, nb::Int, nc::Int) where {T<:AbstractPoint2D}
-    DelaunayTriangle{T}(pa, pb, pc, na, nb, nc)
+                          na::Integer, nb::Integer, nc::Integer) where {T<:AbstractPoint2D}
+    DelaunayTriangle{T}(pa, pb, pc, Int64(na), Int64(nb), Int64(nc))
 end
 function DelaunayTriangle(pa::T, pb::T, pc::T,
                           bx::Float64, by::Float64,
                           cx::Float64, cy::Float64,
                           px::Float64, py::Float64,
                           pr2::Float64,
-                          na::Int, nb::Int, nc::Int) where {T<:AbstractPoint2D}
-    DelaunayTriangle{T}(pa, pb, pc, bx, by, cx, cy, px, py, pr2, na, nb, nc)
+                          na::Integer, nb::Integer, nc::Integer) where {T<:AbstractPoint2D}
+    DelaunayTriangle{T}(pa, pb, pc, bx, by, cx, cy, px, py, pr2, Int64(na), Int64(nb), Int64(nc))
 end
 
 function copy(t::DelaunayTriangle{T}) where {T<:AbstractPoint2D}
@@ -109,11 +109,11 @@ mutable struct DelaunayTessellation2D{T<:AbstractPoint2D}
         sizehint!(t, n)
     end
 end
-DelaunayTessellation2D(n::Int) = DelaunayTessellation2D{Point2D}(n)
-DelaunayTessellation2D(n::Int, ::T) where {T<:AbstractPoint2D} = DelaunayTessellation2D{T}(n)
-DelaunayTessellation(n::Int=100) = DelaunayTessellation2D(n)
+DelaunayTessellation2D(n::Integer) = DelaunayTessellation2D{Point2D}(n)
+DelaunayTessellation2D(n::Integer, ::T) where {T<:AbstractPoint2D} = DelaunayTessellation2D{T}(n)
+DelaunayTessellation(n::Integer=100) = DelaunayTessellation2D(n)
 
-function sizehint!(t::DelaunayTessellation2D{T}, n::Int) where {T<:AbstractPoint2D}
+function sizehint!(t::DelaunayTessellation2D{T}, n::Integer) where {T<:AbstractPoint2D}
     required_total_size = Int64(2n) + Int64(10)
     required_total_size <= length(t._trigs) && return
     sizehint!(t._trigs, required_total_size)
@@ -124,7 +124,7 @@ function sizehint!(t::DelaunayTessellation2D{T}, n::Int) where {T<:AbstractPoint
 end
 
 # growing strategy
-function sizefit_at_least(t::DelaunayTessellation2D{T}, n::Int) where T<:AbstractPoint2D
+function sizefit_at_least(t::DelaunayTessellation2D{T}, n::Integer) where T<:AbstractPoint2D
     minimal_acceptable_actual_size = Int64(2n) + Int64(10)
     minimal_acceptable_actual_size <= length(t._trigs) && return
     required_total_size::Int64 = length(t._trigs)

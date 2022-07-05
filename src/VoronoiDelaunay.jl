@@ -100,9 +100,9 @@ mutable struct DelaunayTessellation2D{T<:AbstractPoint2D}
         b = T(GeometricalPredicates.min_coord, GeometricalPredicates.max_coord)
         c = T(GeometricalPredicates.max_coord, GeometricalPredicates.min_coord)
         d = T(GeometricalPredicates.max_coord, GeometricalPredicates.max_coord)
-        t1 = DelaunayTriangle{T}(d, c, b, 2, 1, 1)
-        t2 = DelaunayTriangle{T}(a, b, c, 3, 1, 1)
-        t3 = DelaunayTriangle{T}(d, c, b, 2, 1, 1)
+        t1 = DelaunayTriangle{T}(d, c, b, Int64(2), Int64(1), Int64(1))
+        t2 = DelaunayTriangle{T}(a, b, c, Int64(3), Int64(1), Int64(1))
+        t3 = DelaunayTriangle{T}(d, c, b, Int64(2), Int64(1), Int64(1))
         _trigs = DelaunayTriangle{T}[t1, t2, t3]
         t = new(_trigs, Int64(3), Int64[], Int64(0))
         sizehint!(t._edges_to_check, 1000)

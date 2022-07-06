@@ -126,7 +126,7 @@ using Test
         @test tess._last_trig_index == 7
 
 
-        _flipa!(tess, 2, 3)
+        _flipa!(tess, Int64(2), Int64(3))
 
         @test geta(tess._trigs[2]) == pp
         @test getb(tess._trigs[2]) == p2
@@ -176,7 +176,7 @@ using Test
         @test tess._trigs[7]._neighbour_b == 6
         @test tess._trigs[7]._neighbour_c == 1
 
-        _flipb!(tess, 3, 2)
+        _flipb!(tess, Int64(3), Int64(2))
 
         @test geta(tess._trigs[3]) == pp
         @test getb(tess._trigs[3]) == pb
@@ -199,7 +199,7 @@ using Test
         @test tess._trigs[5]._neighbour_a == 3
         @test tess._trigs[4]._neighbour_a == 3
 
-        _flipc!(tess,2,3)
+        _flipc!(tess, Int64(2), Int64(3))
 
         @test geta(tess._trigs[2]) == pp
         @test getb(tess._trigs[2]) == pb
@@ -227,7 +227,7 @@ using Test
         tess = DelaunayTessellation2D(100)
         pp = Point2D(1.45, 1.49)
         _pushunfixed!(tess, pp)
-        _flipa!(tess,2,3)
+        _flipa!(tess, Int64(2), Int64(3))
 
         @test geta(tess._trigs[2]) == pp
         @test getb(tess._trigs[2]) == pd

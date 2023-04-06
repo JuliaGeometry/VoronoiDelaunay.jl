@@ -22,7 +22,7 @@ import GeometricalPredicates: geta, getb, getc
 
 import Base: push!, iterate, copy, sizehint!
 import Colors: RGB, RGBA
-using Random: shuffle!, Xoshiro
+using Random: shuffle!, MersenneTwister
 
 const min_coord = GeometricalPredicates.min_coord + eps(Float64)
 const max_coord = GeometricalPredicates.max_coord - eps(Float64)
@@ -703,7 +703,7 @@ function _pushunsorted!(tess::DelaunayTessellation2D{T}, a::Vector{T}) where {T<
 end
 
 # push an array but sort it first for better performance
-function push!(tess::DelaunayTessellation2D{T}, a::Vector{T}, rng = Xoshiro()) where {T<:AbstractPoint2D}
+function push!(tess::DelaunayTessellation2D{T}, a::Vector{T}, rng = MersenneTwister()) where {T<:AbstractPoint2D}
     shuffle!(rng, a)
     mssort!(a)
     _pushunsorted!(tess, a)

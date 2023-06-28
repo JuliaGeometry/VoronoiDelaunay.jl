@@ -1,5 +1,9 @@
 # VoronoiDelaunay.jl
 
+> ⚠️ This package is in maintenance mode.
+> Please consider newer packages such as
+> [DelaunayTriangulation.jl](https://github.com/DanielVandH/DelaunayTriangulation.jl)
+
 Fast, robust construction of 2D Delaunay and Voronoi tessellations on generic point types.
 Implementation follows algorithms described in the [Arepo paper](http://arxiv.org/abs/0901.4107)
 and used (for e.g.) in the [Illustris Simulation](http://www.illustris-project.org/). License: MIT. Bug reports welcome!
